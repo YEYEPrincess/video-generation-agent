@@ -10,15 +10,15 @@ from __future__ import annotations
 import json
 import sqlite3
 import time
-import uuid
-from pathlib import Path
 from typing import Any
 
 from pydantic import ValidationError
 
 from app.contracts import STAGE_CONTRACTS, Check
+from app.core.artifacts import load as load_artifact
+from app.core.artifacts import write as write_artifact
 from app.core.context import StageContext, StageResult
-from app.core.idem import idem_key, short_hash
+from app.core.idem import idem_key
 from app.core.queue import Queue
 from app.core.state_machine import (
     STAGE_BUDGET_CENTS,
@@ -52,49 +52,9 @@ def get_stage_row(conn: sqlite3.Connection, task_id: str, stage: Stage) -> dict[
 
 
 def load_upstream(conn: sqlite3.Connection, settings: Settings, task_id: str, stage: Stage) -> dict:
-    """读取上一阶段的产物 JSON；RESEARCH 没有上游，返回 {}。"""
+    """读取上一阶段的产物；RESEARCH 没有上游，返回 {}。"""
     prev = prev_stage(stage)
-    if prev is None:
-        return {}
-    row = conn.execute(
-        "SELECT path FROM artifacts WHERE task_id = ? AND stage = ? ORDER BY version DESC LIMIT 1",
-        (task_id, prev.value),
-    ).fetchone()
-    if row is None:
-        return {}
-    path = Path(settings.artifacts_dir) / str(row["path"])
-    if not path.exists():
-        return {}
-    return json.loads(path.read_text(encoding="utf-8"))
-
-
-def write_artifact(
-    conn: sqlite3.Connection, settings: Settings, task_id: str, stage: Stage, data: dict
-) -> tuple[str, str]:
-    """落盘 + 登记 artifacts 表。返回 (artifact_id, 相对路径)。"""
-    rel_dir = Path(task_id) / stage.value
-    abs_dir = Path(settings.artifacts_dir) / rel_dir
-    abs_dir.mkdir(parents=True, exist_ok=True)
-    version = int(
-        conn.execute(
-            "SELECT COUNT(*) AS c FROM artifacts WHERE task_id = ? AND stage = ?",
-            (task_id, stage.value),
-        ).fetchone()["c"]
-    ) + 1
-    rel_path = (rel_dir / f"v{version}" / f"{stage.value.lower()}.json").as_posix()
-    abs_path = Path(settings.artifacts_dir) / rel_path
-    abs_path.parent.mkdir(parents=True, exist_ok=True)
-
-    text = json.dumps(data, ensure_ascii=False, indent=2)
-    abs_path.write_text(text, encoding="utf-8")
-
-    artifact_id = "a_" + uuid.uuid4().hex[:12]
-    conn.execute(
-        "INSERT INTO artifacts(id, task_id, stage, version, path, hash, kind, created_at)"
-        " VALUES (?,?,?,?,?,?,?,?)",
-        (artifact_id, task_id, stage.value, version, rel_path, short_hash(text), "json", iso()),
-    )
-    return artifact_id, rel_path
+    return load_artifact(conn, settings, task_id, prev) if prev else {}
 
 
 def serialize_and_validate(stage: Stage, result: StageResult) -> dict:

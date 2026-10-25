@@ -96,6 +96,8 @@ class Audio(BaseModel):
     total_dur: float = 0.0
     voice: str = "zh-CN-XiaoxiaoNeural"
     alignment: Literal["asr", "estimate"] = "estimate"
+    #: 有多少段是静音兜底产出的（QC 要据此判降级）
+    degraded_count: int = 0
 
 
 # ---------------------------------------------------------------- RENDER

@@ -49,9 +49,26 @@ class Settings(BaseSettings):
     #: 强制使用 MockLLM（离线开发 / CI）
     mock_llm: bool = False
 
-    # --- 多模态（M2 起使用） ---
+    # --- 图像生成（M2） ---
+    img_provider: str = "auto"  # auto / api / placeholder
+    img_base_url: str = ""
     img_api_key: str = ""
+    img_model: str = "dall-e-3"
+    img_size: str = "1792x1024"
+    img_timeout_sec: float = 90.0
+    #: 单张图成本（分），用于预算统计
+    img_cost_cents: int = 0
+    assets_concurrency: int = 3
+
+    # --- 语音合成（M2） ---
+    tts_provider: str = "auto"  # auto / edge / silent
+    tts_voice: str = "zh-CN-XiaoxiaoNeural"
+    tts_timeout_sec: float = 45.0
+
+    # --- 视频生成（M6） ---
     video_api_key: str = ""
 
     # --- 文本节奏 ---
-    tts_rate: float = 4.2
+    #: 实测：edge-tts 中文女声约 4.6–4.7 字/秒。按 4.2 估会偏长 11%，
+    #: 导致成片掉到 45s 以下。改 prompt 字数区间时要同步复核这里。
+    tts_rate: float = 4.6

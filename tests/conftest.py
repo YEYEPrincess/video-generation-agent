@@ -16,6 +16,11 @@ def settings(tmp_path) -> Settings:
         fake_stage_sleep=0.0,
         stage_backoff_sec=(0.0, 0.0, 0.0),
         lease_sec=5,
+        # 测试一律走本地实现：不联网、不花钱、结果确定
+        img_provider="placeholder",
+        tts_provider="silent",
+        assets_concurrency=2,
+        img_size="960x540",
     )
 
 

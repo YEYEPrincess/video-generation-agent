@@ -171,9 +171,22 @@ MOCK_BY_STAGE: dict[str, dict] = {
 
 
 class MockLLM:
-    """确定性模型：无 key 时的默认实现，也是所有单测的基础。"""
+    """确定性模型：无 key 时的默认实现，也是所有单测的基础。
+
+    对 ASSETS 阶段做了特殊处理：从 user 里数出镜头数，生成等量的画面描述——
+    这样 Mock 的行为和"配合的模型"一致，不会掩盖真实的数量不匹配问题。
+    """
 
     name = "mock"
+
+    SCENES = (
+        "窗边的旧书桌与亮着的显示器，暖光斜射，中景",
+        "深夜城市天际线与亮着的窗格，冷蓝调，全景",
+        "堆满周边的木质书架，浅景深，近景",
+        "地铁车厢里低头看手机的人群，顶光，中景",
+        "老式电视机与散落的录像带，暖黄光，特写",
+        "图书馆长桌与摊开的笔记本，自然光，全景",
+    )
 
     def __init__(self) -> None:
         self.calls: list[str] = []
@@ -190,7 +203,17 @@ class MockLLM:
         match = re.search(r"\[STAGE:([A-Z_]+)\]", system)
         stage = match.group(1) if match else "UNKNOWN"
         self.calls.append(stage)
-        payload = MOCK_BY_STAGE.get(stage, {"note": f"no mock for {stage}"})
+
+        if stage == "ASSETS":
+            count = len(re.findall(r"(?m)^\d+\.\s", user)) or 3
+            payload: dict = {
+                "prompts": [
+                    f"{self.SCENES[i % len(self.SCENES)]}，扁平插画，深蓝暖橙撞色" for i in range(count)
+                ]
+            }
+        else:
+            payload = MOCK_BY_STAGE.get(stage, {"note": f"no mock for {stage}"})
+
         text = json.dumps(payload, ensure_ascii=False)
         return LLMResult(text=text, tokens=len(text) // 2, cost_cents=0, model="mock")
 
