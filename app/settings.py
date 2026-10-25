@@ -36,9 +36,22 @@ class Settings(BaseSettings):
     fake_mode: bool = True
     fake_stage_sleep: float = 0.5
 
-    # --- 模型 / 多模态（M1 起使用） ---
+    # --- 模型（M1 起使用） ---
     llm_base_url: str = ""
     llm_api_key: str = ""
     llm_model: str = ""
+    llm_timeout_sec: float = 60.0
+    llm_max_tokens: int = 1200
+    llm_temperature: float = 0.7
+    llm_json_mode: bool = True
+    #: 成本估算：每 1k tokens 多少分（人民币分）。按自己的套餐填，0 表示不统计
+    llm_price_cents_per_1k: float = 0.0
+    #: 强制使用 MockLLM（离线开发 / CI）
+    mock_llm: bool = False
+
+    # --- 多模态（M2 起使用） ---
     img_api_key: str = ""
     video_api_key: str = ""
+
+    # --- 文本节奏 ---
+    tts_rate: float = 4.2

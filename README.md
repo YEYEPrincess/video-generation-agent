@@ -5,7 +5,10 @@
 输入一个中文主题 → 七阶段流水线（调研 / 脚本 / 分镜 / 素材 / 配音 / 渲染 / 质检）→ 45–90 秒成片。
 任务异步执行、状态机落库、支持断点续跑与故障恢复。
 
-**当前状态：M0 完成（服务骨架）**，各阶段为占位实现，见 [`docs/reports/M0-服务骨架.md`](docs/reports/M0-服务骨架.md)。
+**当前状态：M1 完成（文本链路）**，ASSETS 及之后仍是占位实现，见
+[`docs/reports/M0-服务骨架.md`](docs/reports/M0-服务骨架.md) 与 [`docs/reports/M1-文本链路.md`](docs/reports/M1-文本链路.md)。
+
+> 未配置 `.env` 时自动使用 `MockLLM`，全链路可离线跑通；接真模型只需填 `LLM_BASE_URL / LLM_API_KEY / LLM_MODEL`。
 
 ## 快速开始
 
@@ -64,7 +67,7 @@ docs/reports/       # 每阶段实现报告
 | M | 内容 | 状态 |
 |---|---|---|
 | M0 | 服务骨架 | ✅ |
-| M1 | 文本链路（research/script/storyboard） | ⬜ |
+| M1 | 文本链路（research/script/storyboard） | ✅ |
 | M2 | 素材 + 配音 | ⬜ |
 | M3 | 渲染出片 | ⬜ |
 | M4 | 分布式加固（租约/回收/故障注入） | ⬜ |
