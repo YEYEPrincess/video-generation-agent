@@ -32,3 +32,11 @@ dev_out/
 uvicorn.log
 uvicorn.err
 *.log
+# --- 评测产物 ---
+artifacts_eval/
+eval.db
+eval.db-wal
+eval.db-shm
+eval/results-smoke.json
+eval/report-smoke.md
+eval/eval.log

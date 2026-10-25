@@ -1,84 +1,205 @@
 # bili-video-agent
 
-> B站 AI 视频创作平台 · 任务编排 Agent 服务（实习求职 demo）
+> 输入一个中文主题 → 七阶段流水线 → 45 秒可发布短片。
+> 异步任务、状态机落库、**杀进程还能续跑**、质检回退只重做坏镜头。
 
-输入一个中文主题 → 七阶段流水线（调研 / 脚本 / 分镜 / 素材 / 配音 / 渲染 / 质检）→ 45–90 秒成片。
-任务异步执行、状态机落库、支持断点续跑与故障恢复。
-
-**当前状态：M6 完成（含 i2v 与运镜修复）**，M7 评测收尾。报告：
-[`M0`](docs/reports/M0-服务骨架.md) / [`M1`](docs/reports/M1-文本链路.md) / [`M2`](docs/reports/M2-素材与配音.md) /
-[`M3`](docs/reports/M3-渲染出片.md) / [`M4`](docs/reports/M4-分布式加固.md) / [`M5`](docs/reports/M5-质检与回退.md) /
-[`M6`](docs/reports/M6-图生视频.md)
-
-```powershell
-.\.venv\Scripts\python.exe scripts\chaos.py --all   # 三种故障注入，全 PASS
-```
+[![tests](https://img.shields.io/badge/tests-92%20passed-3ddc97)](#工程实践)
+[![eval](https://img.shields.io/badge/eval-20%2F20%20DONE-3ddc97)](#评测)
 
 ![成片抽帧](docs/assets/m3-frame.png)
 
-> 未配置 `.env` 时自动使用 `MockLLM`，全链路可离线跑通；接真模型只需填 `LLM_BASE_URL / LLM_API_KEY / LLM_MODEL`。
+---
+
+## 关键数字
+
+| 指标 | 值 | 口径 |
+|---|---|---|
+| 单元测试 | **92 条全绿**（~90s） | `pytest -q` |
+| 评测成功率 | **20/20 DONE** | 5 分区 × 4 主题，720p draft |
+| 单条耗时 | 中位 **28.1s** / P95 33.6s | 1080p 约 90–110s |
+| 成片时长 | **45.0s**（合规率 100%） | 45–90s 为准 |
+| 画面运动量 | 6.03（阈值 ≥1.0） | 首镜两帧灰度差 |
+| QC 均分 | 95/100 | 唯一 warn 是无视频 API key |
+| 故障注入 | **3/3 PASS** | kill / 5xx / 超时 |
+| 代码量 | ~4.2k 行 Python | 含测试 |
+
+> 评测用 Mock 模型（无 API key）：**文本恒定，所以时长/运动量无区分度**。
+> 这组数字证明的是"流水线稳定"，不是"内容质量"。见 [诚实边界](#诚实边界)。
+
+---
+
+## 它是什么
+
+一个**任务编排服务**，不是一个网页玩具：
+
+```
+提交主题 → 202 {task_id} → worker 抢任务 → 7 阶段 → mp4 + 字幕 + trace
+```
+
+- **异步**：HTTP 只登记，worker 执行；视频生成要几分钟，同步必超时
+- **状态机落库**：`current_stage` 在库里，进程只是执行器
+- **租约 + 心跳**：worker 死了，任务被另一个进程接手，从断点续跑
+- **幂等**：重复执行不重复扣费、不重复出产物
+- **质检回退**：坏镜头单独重做，配音零重算
+
+## 它不是什么
+
+| 不做 | 原因 |
+|---|---|
+| 长视频（>90s）、多镜头转场 | 一致性没保障 |
+| 用户/鉴权/多租户 | demo 级，明确写出 |
+| 多机部署 | 单机 SQLite，队列接口已抽好，换 Redis 只改一个文件 |
+| 自动发布到 B站 | 无授权 |
+
+---
+
+## 架构
+
+```
+                    ┌──────────────────────────────────────────────┐
+   POST /tasks ───► │  API（FastAPI） 幂等提交 · 202 · 任务查询        │
+                    └───────────────┬──────────────────────────────┘
+                                    │ INSERT status=PENDING
+                    ┌───────────────▼──────────────────────────────┐
+                    │  SQLite（WAL） tasks/stages/shots/artifacts/events │
+                    │  既是存储，也是队列                                │
+                    └───────────────┬──────────────────────────────┘
+                                    │ 原子抢锁 UPDATE…RETURNING
+                    ┌───────────────▼──────────────────────────────┐
+                    │  Worker ×N：抢任务 → 心跳续租 → 跑阶段 → 校验     │
+                    │                                                │
+                    │  RESEARCH🤖 → SCRIPT⚙️ → STORYBOARD⚙️ →         │
+                    │  ASSETS🤖 → VOICE⚙️ → RENDER⚙️ → QC🤖           │
+                    │                                    └─坏镜→回 ASSETS │
+                    └────────────────────────────────────────────────┘
+```
+
+**7 个阶段里只有 3 个用模型**（调研 / 素材 / 质检），其余是确定性代码。
+理由：判断归模型，算术和编解码归代码——模型只会给时长引入方差。
+
+| 阶段 | 输入 → 输出 | 谁执行 |
+|---|---|---|
+| RESEARCH | 主题 → 角度/钩子/参考/关键词 | 🤖 |
+| SCRIPT | 简报 → 标题/分段/时长 | ⚙️ 模型写内容，代码算时长 |
+| STORYBOARD | 脚本 → 镜头（旁白/画面/景别/时长） | ⚙️ 纯代码切分 |
+| ASSETS | 分镜 → 图片（前 N 镜升级视频） | 🤖 批量改写画面 + 并发出图 |
+| VOICE | 旁白 → 配音 + SRT | ⚙️ edge-tts，实测时长 |
+| RENDER | 素材+配音 → mp4 | ⚙️ ffmpeg |
+| QC | 全产物 → DONE / PARTIAL / RETRY | 🤖 路由器 |
+
+---
 
 ## 快速开始
 
 ```powershell
 uv venv --python 3.11 .venv
-uv pip install --python .\.venv\Scripts\python.exe fastapi uvicorn pydantic pydantic-settings pytest httpx python-dotenv
+uv pip install --python .\.venv\Scripts\python.exe fastapi uvicorn pydantic pydantic-settings pytest httpx pillow edge-tts
 
-.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000   # 终端 1
-.\.venv\Scripts\python.exe -m app.worker --name w1                        # 终端 2
-.\.venv\Scripts\python.exe -m app.worker --name w2                        # 终端 3（可选）
+copy .env.example .env      # 可选：填 LLM_BASE_URL / LLM_API_KEY / LLM_MODEL；不填走 Mock
 
-start http://127.0.0.1:8000
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --port 8000   # 终端 1
+.\.venv\Scripts\python.exe -m app.worker --name w1               # 终端 2
+.\.venv\Scripts\python.exe -m app.worker --name w2               # 终端 3（可选）
 ```
 
-## 验证
+打开 <http://127.0.0.1:8000>，输入主题 → 看进度 + trace → 播放成片。
+
+**一键验证**：
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest -q                                  # 42 passed
-.\.venv\Scripts\python.exe scripts\two_workers.py --workers 2 --tasks 3  # 并发不重复执行
+.\scripts\verify.ps1            # 92 条测试 + 三种故障注入
+.\scripts\verify.ps1 -WithEval  # 再加 20 条评测（约 10 分钟）
 ```
 
-## 架构
+---
 
-```
-POST /tasks ─► tasks(PENDING) ─► worker lease（原子 UPDATE…RETURNING）
-    ─► 7 阶段状态机 ─► 每阶段 checkpoint 落盘 ─► SSE/轮询进度 ─► mp4
-```
+## 三个关键机制
 
-- 设计文档：[`ARCHITECTURE.md`](ARCHITECTURE.md)
-- 执行计划：[`PROJECT-PLAN.md`](PROJECT-PLAN.md)
+### 1. 原子抢锁（不需要 Redis）
 
-## 目录
-
-```
-app/
-  contracts.py      # 七阶段产物契约
-  settings.py       # 配置收口
-  db.py             # SQLite + WAL + 事务
-  core/
-    state_machine.py  # 阶段/状态/超时/预算
-    queue.py          # enqueue / lease / heartbeat / reclaim
-    runner.py         # 状态机推进 + 幂等 + 重试
-    idem.py           # 幂等键
-    trace.py          # 事件（trace）
-  stages/           # 七个阶段（M0 为 fakes）
-  api/routes.py     # HTTP 接口
-  worker.py         # worker 进程
-web/index.html      # 单页控制台
-tests/              # 42 条
-scripts/            # 并发验证 / 后续故障注入
-docs/reports/       # 每阶段实现报告
+```sql
+UPDATE tasks SET status='RUNNING', worker_id=?, lease_until=?
+WHERE id=(SELECT id FROM tasks WHERE status='PENDING' ORDER BY created_at LIMIT 1)
+  AND status='PENDING'
+RETURNING *
 ```
 
-## 里程碑
+单条语句即原子。worker 心跳续租，租约过期由回收线程打回 `PENDING`。
 
-| M | 内容 | 状态 |
-|---|---|---|
-| M0 | 服务骨架 | ✅ |
-| M1 | 文本链路（research/script/storyboard） | ✅ |
-| M2 | 素材 + 配音 | ✅ |
-| M3 | 渲染出片 | ✅ |
-| M4 | 分布式加固（租约/回收/故障注入） | ✅ |
-| M5 | 质检 + 回退 + 字幕对齐 | ✅ |
-| M6 | i2v 高光镜 + 并发 | ✅ |
-| M7 | 评测 + 测试 + 文档 | ⬜ |
+### 2. 幂等键 = 断点续跑 + 精准重做，同一套机制
+
+```
+idem = sha1(task_id | stage | 该阶段的真实上游 | 配置版本)
+```
+
+关键在「真实上游」：`VOICE` 依赖 `STORYBOARD`（旁白），**不依赖 `ASSETS`（素材）**。
+所以 QC 换掉一镜素材时：ASSETS 键变 → 重做；VOICE 键不变 → 跳过。
+这就是「只重做坏镜头、配音零重算」全部的实现。
+
+### 3. QC 是路由器，不是打分器
+
+```
+有坏镜 && 无结构性失败 && 轮次未用尽 → RETRY（只标那几镜）
+否则有 block 失败                    → PARTIAL（写清原因）
+否则                                 → DONE
+```
+
+能自动判的只有：时长、黑帧/静音/削波、字幕覆盖、画面是否纯色。
+「镜头与旁白是否相关」判不了——所以它只挡「技术上不能发」，不假装能判「好不好看」。
+
+---
+
+## 评测
+
+20 条主题（知识/科技/生活/游戏/影视各 4 条），720p draft 渲染：
+
+| 指标 | 值 |
+|---|---|
+| 可交付成功率 | **100%**（20/20 DONE） |
+| 时长合规（45–90s） | 100% |
+| 画面有运动（≥1.0） | 100%（中位 6.03） |
+| 单条耗时 中位 / P95 | 28.1s / 33.6s |
+| QC 均分 | 95 |
+
+完整报告：[`eval/report.md`](eval/report.md)（逐条结果 + 分阶段耗时）。
+
+**评测里特意加了一条 `motion_score`**：抽两帧算灰度差。
+因为 M3–M6 之间有个 bug——所有技术指标全绿，但画面其实是静止的（详见
+[`docs/reports/M6-图生视频.md`](docs/reports/M6-图生视频.md)）。**指标绿 ≠ 内容是活的。**
+
+---
+
+## 工程实践
+
+| 项 | 做法 |
+|---|---|
+| 错误码 | 只允许 8 个（`E_VALIDATION/E_TOOL_TIMEOUT/E_TOOL_UPSTREAM/E_TOOL_EMPTY/E_BUDGET/E_LOOP/E_RENDER/E_INTERNAL`），`except Exception` 只出现在 worker 最外层 |
+| 可观测 | `events` 表 10 类事件，每步都有耗时/token/成本；前端可回放 |
+| 测试 | 92 条：契约、状态机、队列并发（4 线程抢 5 任务）、幂等、租约回收、渲染、回退、i2v 协议 |
+| 失败注入 | `scripts/chaos.py` 真进程 `kill -9` + HTTP stub 500 / 超时 |
+| 技术债 | [`docs/debt.md`](docs/debt.md) 18 条，每条写明代价与偿还计划 |
+| 决策记录 | [`docs/adr/`](docs/adr/) |
+
+---
+
+## 诚实边界
+
+1. **评测用的是 Mock 模型**（无 key）。文本恒定 → 时长/运动量无区分度，只能证明流水线稳定。
+   接入真实模型后需要重跑，数字必然会变差。
+2. **画面是占位图**（无 `IMG_API_KEY`）。配 key 后走文生图，逻辑已实现并测试。
+3. **i2v 只验证了协议**（无厂商 key），真机走 `kenburns` 回落。
+4. **字幕是一镜一句**，没有词级时间轴（`docs/debt.md` D-15）。
+5. **「镜头与旁白相关」没有自动判定**，QC 只挡纯色/黑图/坏文件（D-16）。
+
+---
+
+## 文档
+
+| 文档 | 内容 |
+|---|---|
+| [`ARCHITECTURE.md`](ARCHITECTURE.md) | 架构、状态机、契约 |
+| [`PROJECT-PLAN.md`](PROJECT-PLAN.md) | 八里程碑执行计划与验收标准 |
+| [`docs/reports/`](docs/reports/) | M0–M7 每阶段实现报告（含 bug 复盘） |
+| [`docs/debt.md`](docs/debt.md) | 技术债登记 |
+| [`docs/demo-script.md`](docs/demo-script.md) | 90 秒演示脚本 |
+| [`eval/report.md`](eval/report.md) | 评测结果 |
