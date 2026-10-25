@@ -10,7 +10,8 @@ import wave
 from pathlib import Path
 
 import pytest
-from PIL import Image
+import subprocess
+from PIL import Image, ImageChops, ImageStat
 
 from app.contracts import Assets, AssetShot, Audio, AudioShot, Shot, Storyboard
 from app.core.artifacts import write
@@ -147,3 +148,57 @@ def test_render_accepts_missing_asset_file(conn, settings):
     with pytest.raises(AppError) as exc:
         render.run(make_ctx(task_id, fast, conn))
     assert exc.value.code.value == "E_VALIDATION"
+
+
+# ------------------------------------------------------------------ 运镜回归
+def _frame(video: Path, at: float, out: Path) -> Image.Image:
+    subprocess.run(
+        ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-ss", str(at),
+         "-i", str(video), "-frames:v", "1", str(out)],
+        check=True, capture_output=True,
+    )
+    return Image.open(out).convert("L")
+
+
+def _pattern(path: Path) -> Path:
+    """有结构的图（纯色图看不出推近，必须画点东西）。"""
+    from PIL import ImageDraw
+
+    img = Image.new("RGB", (320, 180), (30, 40, 60))
+    draw = ImageDraw.Draw(img)
+    for i in range(0, 320, 40):
+        draw.line([(i, 0), (i, 180)], fill=(200, 120, 80), width=2)
+    for j in range(0, 180, 30):
+        draw.line([(0, j), (320, j)], fill=(90, 160, 200), width=2)
+    draw.rectangle([120, 60, 200, 120], fill=(240, 240, 240))
+    img.save(path)
+    return path
+
+
+def test_kenburns_really_moves(tmp_path, settings):
+    """回归：zoompan 的 d 必须等于总帧数，否则 zoom 每帧重置 → 画面静止。"""
+    from app.agent.tools.render import build_clip
+
+    image = _pattern(tmp_path / "still.png")
+    clip = tmp_path / "clip.mp4"
+    build_clip(image, clip, 2.0, motion="kenburns_in", width=320, height=180, fps=10,
+               preset="ultrafast", cwd=tmp_path, timeout=120)
+
+    first = _frame(clip, 0.1, tmp_path / "f0.png")
+    last = _frame(clip, 1.8, tmp_path / "f1.png")
+    diff = ImageStat.Stat(ImageChops.difference(first, last)).mean[0]
+    assert diff > 3.0, f"推近没有生效（帧差 {diff:.2f}）"
+
+
+def test_static_motion_stays_static(tmp_path, settings):
+    from app.agent.tools.render import build_clip
+
+    image = _pattern(tmp_path / "still2.png")
+    clip = tmp_path / "static.mp4"
+    build_clip(image, clip, 2.0, motion="none", width=320, height=180, fps=10,
+               preset="ultrafast", cwd=tmp_path, timeout=120)
+
+    first = _frame(clip, 0.1, tmp_path / "s0.png")
+    last = _frame(clip, 1.8, tmp_path / "s1.png")
+    diff = ImageStat.Stat(ImageChops.difference(first, last)).mean[0]
+    assert diff < 1.0, f"静态镜头不该有运动（帧差 {diff:.2f}）"

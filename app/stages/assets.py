@@ -142,6 +142,31 @@ def run(ctx: StageContext) -> StageResult:
             )
         )
 
+    # 高光镜升级为视频：素材阶段的"选材"决策，同样是确定性的（前 N 镜）
+    upgraded: list[int] = []
+    if settings.enable_i2v and len(asset_shots) > 2:
+        from app.agent.tools.i2v import generate as generate_video
+
+        for index in range(min(settings.i2v_max_shots, len(asset_shots))):
+            shot = asset_shots[index]
+            source = root / shot.path
+            result = generate_video(
+                image=source,
+                prompt=prompts.get(index, shots[index].visual_prompt),
+                out_path=media_dir / f"shot_{index:02d}.mp4",
+                duration=shots[index].est_sec,
+                settings=settings,
+            )
+            asset_shots[index] = shot.model_copy(
+                update={
+                    "kind": "video",
+                    "path": _relative(settings, result.path),
+                    "provider": result.provider,
+                    "degraded": shot.degraded or result.degraded,
+                }
+            )
+            upgraded.append(index)
+
     # 镜头级状态落表：QC 回退时只改这里，资产阶段据此决定重做谁
     for index, asset in enumerate(asset_shots):
         row = ctx.conn.execute(
@@ -173,6 +198,7 @@ def run(ctx: StageContext) -> StageResult:
             "prompt_error": last_error,
             "reused": sorted(reusable),
             "regenerated": sorted(todo),
+            "upgraded_to_video": upgraded,
             "degraded": assets.degraded_count,
         },
     )

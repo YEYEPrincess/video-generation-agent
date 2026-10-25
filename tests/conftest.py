@@ -30,6 +30,8 @@ def settings(tmp_path) -> Settings:
         # 测试样本只有 3~4 秒，质检的时长门槛要跟着放宽
         qc_min_sec=1.0,
         qc_max_sec=120.0,
+        # 图生视频是可选增强：默认关，M6 的用例单独打开
+        enable_i2v=False,
     )
 
 

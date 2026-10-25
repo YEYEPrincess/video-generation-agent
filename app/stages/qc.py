@@ -119,10 +119,15 @@ def run(ctx: StageContext) -> StageResult:
 
     # DoD 4：镜头画面质量（能自动查的那部分）
     bad_shots: list[tuple[int, str]] = []
+    fallback_video: list[int] = []
     for shot in assets.shots:
-        problem = _image_problem(
-            root / shot.path, settings.qc_min_bytes, settings.qc_min_stddev
-        )
+        path = root / shot.path
+        if shot.kind == "video":
+            problem = None if path.exists() and path.stat().st_size > settings.qc_min_bytes else "video_missing"
+            if shot.provider == "kenburns":
+                fallback_video.append(shot.idx)
+        else:
+            problem = _image_problem(path, settings.qc_min_bytes, settings.qc_min_stddev)
         if problem:
             bad_shots.append((shot.idx, problem))
         if shot.degraded:
@@ -141,6 +146,14 @@ def run(ctx: StageContext) -> StageResult:
             passed=audio.degraded_count == 0,
             severity="warn",
             detail=f"{audio.degraded_count} 段为静音兜底",
+        )
+    )
+    checks.append(
+        Check(
+            name="i2v_effective",
+            passed=not fallback_video,
+            severity="warn",
+            detail=f"第 {fallback_video} 镜未用上视频生成，已回落运动图片" if fallback_video else "ok",
         )
     )
 

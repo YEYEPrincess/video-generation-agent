@@ -5,9 +5,10 @@
 输入一个中文主题 → 七阶段流水线（调研 / 脚本 / 分镜 / 素材 / 配音 / 渲染 / 质检）→ 45–90 秒成片。
 任务异步执行、状态机落库、支持断点续跑与故障恢复。
 
-**当前状态：M5 完成（质检 + 精准回退）**，M6 i2v / M7 评测待做。报告：
+**当前状态：M6 完成（含 i2v 与运镜修复）**，M7 评测收尾。报告：
 [`M0`](docs/reports/M0-服务骨架.md) / [`M1`](docs/reports/M1-文本链路.md) / [`M2`](docs/reports/M2-素材与配音.md) /
-[`M3`](docs/reports/M3-渲染出片.md) / [`M4`](docs/reports/M4-分布式加固.md) / [`M5`](docs/reports/M5-质检与回退.md)
+[`M3`](docs/reports/M3-渲染出片.md) / [`M4`](docs/reports/M4-分布式加固.md) / [`M5`](docs/reports/M5-质检与回退.md) /
+[`M6`](docs/reports/M6-图生视频.md)
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\chaos.py --all   # 三种故障注入，全 PASS
@@ -79,5 +80,5 @@ docs/reports/       # 每阶段实现报告
 | M3 | 渲染出片 | ✅ |
 | M4 | 分布式加固（租约/回收/故障注入） | ✅ |
 | M5 | 质检 + 回退 + 字幕对齐 | ✅ |
-| M6 | i2v 高光镜 + 并发 | ⬜ |
+| M6 | i2v 高光镜 + 并发 | ✅ |
 | M7 | 评测 + 测试 + 文档 | ⬜ |

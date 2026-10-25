@@ -17,6 +17,7 @@ from pydantic import ValidationError
 
 from app.agent.tools.render import (
     build_clip,
+    build_clip_from_video,
     concat_audio,
     concat_video,
     inspect,
@@ -75,29 +76,32 @@ def run(ctx: StageContext) -> StageResult:
     clips: list[Path] = []
     audio_files: list[Path] = []
     for index in range(len(assets.shots)):
-        image_src = artifacts_root / assets.shots[index].path
+        shot = assets.shots[index]
+        image_src = artifacts_root / shot.path
         audio_src = artifacts_root / audio.per_shot[index].path
         if not image_src.exists() or not audio_src.exists():
             raise AppError(ErrCode.E_VALIDATION, f"第 {index} 镜素材文件缺失", retryable=False)
 
-        image = _copy(image_src, work / f"img_{index:02d}{image_src.suffix}")
-        clip_audio = _copy(audio_src, work / f"a_{index:02d}{audio_src.suffix}")
-        audio_files.append(clip_audio)
-
-        duration = durations[assets.shots[index].idx] + (pad if index == len(assets.shots) - 1 else 0.0)
+        duration = durations[shot.idx] + (pad if index == len(assets.shots) - 1 else 0.0)
         clip = work / f"clip_{index:02d}.mp4"
-        build_clip(
-            image,
-            clip,
-            round(duration, 3),
-            motion=storyboard.shots[index].motion,
-            width=s.render_width,
-            height=s.render_height,
-            fps=s.render_fps,
-            preset=s.render_preset,
-            cwd=work,
-            timeout=s.ffmpeg_timeout_sec,
-        )
+
+        if shot.kind == "video":
+            source = _copy(image_src, work / f"vid_{index:02d}{image_src.suffix}")
+            build_clip_from_video(
+                source, clip, round(duration, 3),
+                width=s.render_width, height=s.render_height, fps=s.render_fps,
+                preset=s.render_preset, cwd=work, timeout=s.ffmpeg_timeout_sec,
+            )
+        else:
+            source = _copy(image_src, work / f"img_{index:02d}{image_src.suffix}")
+            build_clip(
+                source, clip, round(duration, 3),
+                motion=storyboard.shots[index].motion,
+                width=s.render_width, height=s.render_height, fps=s.render_fps,
+                preset=s.render_preset, cwd=work, timeout=s.ffmpeg_timeout_sec,
+            )
+
+        audio_files.append(_copy(audio_src, work / f"a_{index:02d}{audio_src.suffix}"))
         clips.append(clip)
 
     concat_video(clips, "video.mp4", cwd=work, timeout=s.ffmpeg_timeout_sec)

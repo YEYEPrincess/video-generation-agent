@@ -63,29 +63,33 @@ def build_clip(
     timeout: int,
 ) -> None:
     base = f"scale={width}:{height}:force_original_aspect_ratio=increase,crop={width}:{height},setsar=1"
+
     if motion == "none":
         vf = f"{base},format=yuv420p"
-    elif motion == "kenburns_out":
+        source_args = ["-loop", "1", "-framerate", str(fps), "-i", str(image)]
+    else:
+        # ⚠️ 关键：zoompan 的 d 必须等于**总帧数**，并且只喂一张图。
+        # 用 `-loop 1` 喂多帧 + `d=1` 会让 zoom 每帧重置 —— 效果等于没动。
+        frames = max(1, int(round(duration * fps)))
+        if motion == "kenburns_out":
+            z = "max(1.12-0.0006*on,1.0)"
+            x = "iw/2-(iw/zoom/2)"
+        elif motion == "pan_lr":
+            z = "1.10"
+            x = f"(iw-iw/zoom)*on/{frames}"
+        else:  # kenburns_in / i2v 静帧
+            z = "min(zoom+0.0010,1.15)"
+            x = "iw/2-(iw/zoom/2)"
         vf = (
-            f"{base},zoompan=z='max(1.12-0.0006*on,1.0)':x='iw/2-(iw/zoom/2)'"
-            f":y='ih/2-(ih/zoom/2)':d=1:s={width}x{height}:fps={fps},format=yuv420p"
+            f"{base},zoompan=z='{z}':x='{x}':y='ih/2-(ih/zoom/2)'"
+            f":d={frames}:s={width}x{height}:fps={fps},format=yuv420p"
         )
-    elif motion == "pan_lr":
-        frames = max(1, int(duration * fps))
-        vf = (
-            f"{base},zoompan=z=1.10:x='(iw-iw/zoom)*on/{frames}':y='ih/2-(ih/zoom/2)'"
-            f":d=1:s={width}x{height}:fps={fps},format=yuv420p"
-        )
-    else:  # kenburns_in / i2v 静帧
-        vf = (
-            f"{base},zoompan=z='min(zoom+0.0006,1.12)':x='iw/2-(iw/zoom/2)'"
-            f":y='ih/2-(ih/zoom/2)':d=1:s={width}x{height}:fps={fps},format=yuv420p"
-        )
+        source_args = ["-i", str(image)]
 
     proc = _run(
         [
             "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-            "-loop", "1", "-framerate", str(fps), "-i", str(image),
+            *source_args,
             "-t", f"{duration:.3f}",
             "-vf", vf, "-r", str(fps),
             "-c:v", "libx264", "-preset", preset, "-crf", "23",
@@ -95,6 +99,36 @@ def build_clip(
         cwd=cwd, timeout=timeout,
     )
     _check(proc, "生成镜头片段")
+
+
+def build_clip_from_video(
+    video: Path,
+    out: Path,
+    duration: float,
+    *,
+    width: int,
+    height: int,
+    fps: int,
+    preset: str,
+    cwd: Path,
+    timeout: int,
+) -> None:
+    """把一段（可能太短的）视频铺满目标时长：循环 + 裁切到 16:9。"""
+    vf = (
+        f"scale={width}:{height}:force_original_aspect_ratio=increase,"
+        f"crop={width}:{height},setsar=1,fps={fps},format=yuv420p"
+    )
+    proc = _run(
+        [
+            "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+            "-stream_loop", "-1", "-i", str(video.resolve()),
+            "-t", f"{duration:.3f}", "-vf", vf,
+            "-c:v", "libx264", "-preset", preset, "-crf", "23",
+            "-pix_fmt", "yuv420p", out.name,
+        ],
+        cwd=cwd, timeout=timeout,
+    )
+    _check(proc, "生成镜头片段（视频素材）")
 
 
 def concat_video(clips: list[Path], out_name: str, cwd: Path, timeout: int) -> None:

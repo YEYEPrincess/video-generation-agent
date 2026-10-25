@@ -67,13 +67,23 @@ class Settings(BaseSettings):
 
     # --- 视频生成（M6） ---
     video_api_key: str = ""
-
     # --- 渲染（M3） ---
     render_width: int = 1920
     render_height: int = 1080
     render_fps: int = 30
     render_preset: str = "veryfast"
     ffmpeg_timeout_sec: int = 300
+
+    # --- 图生视频（M6） ---
+    enable_i2v: bool = True
+    i2v_max_shots: int = 1
+    i2v_provider: str = "auto"  # auto / api / kenburns
+    video_base_url: str = ""
+    video_model: str = "kling-v1"
+    i2v_timeout_sec: float = 300.0
+    i2v_poll_sec: float = 5.0
+    i2v_poll_max: int = 40
+    i2v_cost_cents: int = 0
 
     # --- 质检（M5） ---
     qc_min_sec: float = 45.0
