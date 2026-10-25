@@ -19,3 +19,5 @@
 | D-12 | 1080p 单条渲染 78–99s | M3 | 20 条评测要 30+ 分钟 | M7 评测用 `RENDER_*` 降到 720p/24fps |
 | D-13 | 死信只是 `status=FAILED` + `error` 字符串，没有独立 DLQ 表与重放工具 | M4 | 无法批量重放失败任务 | 长期：`dead_letters` 表 + `scripts/replay.py` |
 | D-14 | 租约回收靠轮询（15s 一次），最坏要等一个 lease 周期 | M4 | 接手延迟 15–75s | 长期：Redis 的 `XAUTOCLAIM` 或事件驱动 |
+| D-15 | 字幕粒度是"一镜一句"，没有词级时间轴 | M5 | 长句字幕整段显示，观感一般；`alignment` 仍是 `estimate` | M7 用 edge-tts 的 WordBoundary 或 whisper 做词级对齐 |
+| D-16 | "镜头与旁白语义相关"没有自动判定 | M5 | QC 只能挡"纯色/黑图/坏文件"，挡不住"图文不符" | M6/M7 接 CLIP 相似度 + 人评抽样 |

@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     status             TEXT NOT NULL,
     current_stage      TEXT,
     attempt            INTEGER NOT NULL DEFAULT 0,
+    qc_rounds          INTEGER NOT NULL DEFAULT 0,
     worker_id          TEXT,
     lease_until        REAL,
     budget_spent_cents INTEGER NOT NULL DEFAULT 0,
@@ -100,6 +101,14 @@ def connect(db_path: str) -> sqlite3.Connection:
 
 def init_db(conn: sqlite3.Connection) -> None:
     conn.executescript(SCHEMA)
+    _migrate(conn)
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    """轻量迁移：老库补列。生产环境该上 alembic，demo 用 pragma 足够。"""
+    columns = {row["name"] for row in conn.execute("PRAGMA table_info(tasks)")}
+    if "qc_rounds" not in columns:
+        conn.execute("ALTER TABLE tasks ADD COLUMN qc_rounds INTEGER NOT NULL DEFAULT 0")
 
 
 @contextmanager

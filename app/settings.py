@@ -75,6 +75,13 @@ class Settings(BaseSettings):
     render_preset: str = "veryfast"
     ffmpeg_timeout_sec: int = 300
 
+    # --- 质检（M5） ---
+    qc_min_sec: float = 45.0
+    qc_max_sec: float = 90.0
+    qc_max_rounds: int = 2
+    qc_min_bytes: int = 3000
+    qc_min_stddev: float = 6.0
+
     # --- 文本节奏 ---
     #: 实测：edge-tts 中文女声约 4.6–4.7 字/秒。按 4.2 估会偏长 11%，
     #: 导致成片掉到 45s 以下。改 prompt 字数区间时要同步复核这里。

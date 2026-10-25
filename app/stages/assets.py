@@ -1,11 +1,9 @@
-"""ASSETS 阶段：批量改写画面描述 + 并发生成图片。
+"""ASSETS 阶段：批量改写画面描述 + 并发生成图片（支持"只重做指定镜头"）。
 
-两个设计点：
-1. **先批量重写 prompt，再生成图**：STORYBOARD 的 visual_prompt 是代码拼的，
-   只有"主体+风格"，喂给 T2I 会画出文字碎片。这里用一次模型调用把它们
-   改写成「主体+动作+场景+风格+景别」——一次调用换 6 张图的质量，很划算。
-2. **单镜失败不拖垮整条**：任何一镜失败都回落占位图并标 `degraded`，
-   任务是 `PARTIAL` 而不是 `FAILED`。
+回退重做时：
+- `shots` 表里 status='RETRY' 的镜头才重新生成；
+- 其余镜头直接复用上一版产物，不花一分钱、不占一秒；
+- 这就是 QC 回退能做到"精准"的原因。
 """
 
 from __future__ import annotations
@@ -19,6 +17,7 @@ from app.agent.llm import extract_json, get_llm, stage_marker
 from app.agent.prompts import render
 from app.agent.tools.images import generate
 from app.contracts import AssetShot, Assets, Check, Shot, Storyboard
+from app.core.artifacts import load as load_artifact
 from app.core.artifacts import stage_dir
 from app.core.context import StageContext, StageResult
 from app.core.state_machine import Stage
@@ -56,7 +55,23 @@ def rewrite_prompts(shots: list[Shot], settings: Settings) -> tuple[list[str], i
 
 
 def _relative(settings: Settings, abs_path: str) -> str:
-    return Path(abs_path).relative_to(Path(settings.artifacts_dir)).as_posix()
+    return Path(abs_path).resolve().relative_to(Path(settings.artifacts_dir).resolve()).as_posix()
+
+
+def _reusable(ctx: StageContext, root: Path) -> dict[int, AssetShot]:
+    """上一版里仍然有效的镜头（文件在、状态 DONE）。"""
+    previous = load_artifact(ctx.conn, ctx.settings, ctx.task_id, Stage.ASSETS)
+    rows = {
+        int(r["idx"]): dict(r)
+        for r in ctx.conn.execute("SELECT * FROM shots WHERE task_id = ?", (ctx.task_id,))
+    }
+    reusable: dict[int, AssetShot] = {}
+    for item in previous.get("shots") or []:
+        idx = int(item["idx"])
+        row = rows.get(idx)
+        if row and row["status"] == "DONE" and (root / item["path"]).exists():
+            reusable[idx] = AssetShot.model_validate(item)
+    return reusable
 
 
 @register(Stage.ASSETS)
@@ -66,50 +81,81 @@ def run(ctx: StageContext) -> StageResult:
     except ValidationError as exc:
         raise AppError(ErrCode.E_VALIDATION, "上游分镜非法", detail={"errors": exc.errors()[:3]}) from exc
 
+    settings = ctx.settings
     shots = storyboard.shots
+    root = Path(settings.artifacts_dir).resolve()
+    reusable = _reusable(ctx, root)
+    todo = [i for i in range(len(shots)) if i not in reusable]
+
     tokens = cost = 0
-    prompt_mode = "llm"
-    try:
-        prompts, tokens, cost = rewrite_prompts(shots, ctx.settings)
-    except AppError as exc:
-        # 改写失败不致命：退回分镜自带的画面描述，仍然能出图
-        prompts = [shot.visual_prompt for shot in shots]
-        prompt_mode = "fallback"
-        ctx.settings  # 保持签名可读
-        last_error = exc.message
-    else:
-        last_error = ""
+    prompt_mode = "reuse"
+    last_error = ""
+    prompts: dict[int, str] = {}
 
-    media_dir = stage_dir(ctx.settings, ctx.task_id, Stage.ASSETS) / "media"
-    size = _parse_size(ctx.settings.img_size)
+    if todo:
+        targets = [shots[i] for i in todo]
+        try:
+            generated, tokens, cost = rewrite_prompts(targets, settings)
+            prompt_mode = "llm"
+        except AppError as exc:
+            generated = [shot.visual_prompt for shot in targets]
+            prompt_mode = "fallback"
+            last_error = exc.message
+        prompts = dict(zip(todo, generated))
 
-    def _one(index: int, shot: Shot, prompt: str):
+    media_dir = stage_dir(settings, ctx.task_id, Stage.ASSETS) / "media"
+    size = _parse_size(settings.img_size)
+
+    def _one(index: int):
         return generate(
-            prompt=prompt,
-            narration=shot.narration,
+            prompt=prompts[index],
+            narration=shots[index].narration,
             out_path=media_dir / f"shot_{index:02d}.png",
             size=size,
             index=index,
-            settings=ctx.settings,
+            settings=settings,
         )
 
-    with ThreadPoolExecutor(max_workers=max(1, ctx.settings.assets_concurrency)) as pool:
-        futures = [pool.submit(_one, i, shot, prompt) for i, (shot, prompt) in enumerate(zip(shots, prompts))]
-        results = [f.result() for f in futures]
+    generated_results: dict[int, object] = {}
+    if todo:
+        with ThreadPoolExecutor(max_workers=max(1, settings.assets_concurrency)) as pool:
+            futures = {i: pool.submit(_one, i) for i in todo}
+            for i, future in futures.items():
+                generated_results[i] = future.result()
 
     asset_shots: list[AssetShot] = []
-    for index, (result, prompt) in enumerate(zip(results, prompts)):
+    for index in range(len(shots)):
+        if index in reusable:
+            asset_shots.append(reusable[index])
+            continue
+        result = generated_results[index]
         asset_shots.append(
             AssetShot(
                 idx=index,
                 kind="image",
-                path=_relative(ctx.settings, result.path),
+                path=_relative(settings, result.path),
                 width=result.width,
                 height=result.height,
                 provider=result.provider,
                 cost_cents=result.cost_cents,
                 degraded=result.degraded,
             )
+        )
+
+    # 镜头级状态落表：QC 回退时只改这里，资产阶段据此决定重做谁
+    for index, asset in enumerate(asset_shots):
+        row = ctx.conn.execute(
+            "SELECT retry_count FROM shots WHERE task_id = ? AND idx = ?", (ctx.task_id, index)
+        ).fetchone()
+        retry_count = int(row["retry_count"]) if row else 0
+        ctx.conn.execute(
+            "INSERT OR REPLACE INTO shots(task_id, idx, narration, visual_prompt, kind, asset_path,"
+            " sim_score, status, retry_count) VALUES (?,?,?,?,?,?,?,?,?)",
+            (
+                ctx.task_id, index, shots[index].narration,
+                prompts.get(index, shots[index].visual_prompt),
+                "image", asset.path, asset.sim_score, "DONE", retry_count,
+            ),
         )
 
     assets = Assets(
@@ -125,8 +171,9 @@ def run(ctx: StageContext) -> StageResult:
         meta={
             "prompt_mode": prompt_mode,
             "prompt_error": last_error,
+            "reused": sorted(reusable),
+            "regenerated": sorted(todo),
             "degraded": assets.degraded_count,
-            "provider": asset_shots[0].provider if asset_shots else "none",
         },
     )
 

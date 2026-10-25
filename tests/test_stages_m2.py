@@ -16,7 +16,7 @@ from app.errors import AppError, ErrCode
 from app.stages import assets, research, script, storyboard, voice
 
 
-def make_ctx(stage: Stage, upstream: dict | None = None, settings=None, task_id="t_m2") -> StageContext:
+def make_ctx(stage: Stage, upstream: dict | None = None, settings=None, task_id="t_m2", conn=None) -> StageContext:
     return StageContext(
         task_id=task_id,
         topic="为什么年轻人开始重看老动画",
@@ -25,7 +25,7 @@ def make_ctx(stage: Stage, upstream: dict | None = None, settings=None, task_id=
         upstream=upstream or {},
         attempt=1,
         settings=settings,
-        conn=None,
+        conn=conn,
     )
 
 
@@ -36,9 +36,9 @@ def storyboard_of(settings, task_id="t_m2") -> dict:
 
 
 # ------------------------------------------------------------------ ASSETS
-def test_assets_generates_every_shot(settings):
+def test_assets_generates_every_shot(settings, conn):
     sb = storyboard_of(settings)
-    result = assets.run(make_ctx(Stage.ASSETS, sb, settings))
+    result = assets.run(make_ctx(Stage.ASSETS, sb, settings, conn=conn))
 
     assert result.validate_contract is True
     assert len(result.data["shots"]) == len(sb["shots"])
@@ -52,20 +52,20 @@ def test_assets_generates_every_shot(settings):
         assert shot["provider"] == "placeholder"
 
 
-def test_assets_falls_back_when_prompt_rewrite_fails(settings, monkeypatch):
+def test_assets_falls_back_when_prompt_rewrite_fails(settings, conn, monkeypatch):
     sb = storyboard_of(settings)
 
     def boom(*args, **kwargs):
         raise AppError(ErrCode.E_VALIDATION, "模型没给够画面描述")
 
     monkeypatch.setattr("app.stages.assets.rewrite_prompts", boom)
-    result = assets.run(make_ctx(Stage.ASSETS, sb, settings))
+    result = assets.run(make_ctx(Stage.ASSETS, sb, settings, conn=conn))
 
     assert result.meta["prompt_mode"] == "fallback"
     assert len(result.data["shots"]) == len(sb["shots"]), "降级后仍要出全部镜头"
 
 
-def test_assets_marks_degraded_when_image_fails(settings, monkeypatch):
+def test_assets_marks_degraded_when_image_fails(settings, conn, monkeypatch):
     sb = storyboard_of(settings)
 
     from app.agent.tools.images import ImageResult
@@ -76,7 +76,7 @@ def test_assets_marks_degraded_when_image_fails(settings, monkeypatch):
         return ImageResult(path=str(out_path), width=1920, height=1080, provider="placeholder", degraded=True)
 
     monkeypatch.setattr("app.stages.assets.generate", degrade)
-    result = assets.run(make_ctx(Stage.ASSETS, sb, settings))
+    result = assets.run(make_ctx(Stage.ASSETS, sb, settings, conn=conn))
     assert result.data["degraded_count"] == len(sb["shots"])
 
 

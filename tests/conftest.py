@@ -27,6 +27,9 @@ def settings(tmp_path) -> Settings:
         render_fps=10,
         render_preset="ultrafast",
         ffmpeg_timeout_sec=120,
+        # 测试样本只有 3~4 秒，质检的时长门槛要跟着放宽
+        qc_min_sec=1.0,
+        qc_max_sec=120.0,
     )
 
 

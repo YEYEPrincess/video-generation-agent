@@ -21,12 +21,13 @@ from app.core.context import StageContext, StageResult
 from app.core.idem import idem_key
 from app.core.queue import Queue
 from app.core.state_machine import (
+    ROLLBACK_RESET_STAGES,
     STAGE_BUDGET_CENTS,
+    STAGE_INPUTS,
     Stage,
     StageStatus,
     TaskStatus,
     next_stage,
-    prev_stage,
 )
 from app.core.trace import emit, timer
 from app.db import iso
@@ -51,10 +52,17 @@ def get_stage_row(conn: sqlite3.Connection, task_id: str, stage: Stage) -> dict[
     return dict(row) if row else None
 
 
+def load_inputs(conn: sqlite3.Connection, settings: Settings, task_id: str, stage: Stage) -> dict[str, dict]:
+    """该阶段真正依赖的全部上游产物（见 STAGE_INPUTS）。"""
+    return {s.value: load_artifact(conn, settings, task_id, s) for s in STAGE_INPUTS[stage]}
+
+
 def load_upstream(conn: sqlite3.Connection, settings: Settings, task_id: str, stage: Stage) -> dict:
-    """读取上一阶段的产物；RESEARCH 没有上游，返回 {}。"""
-    prev = prev_stage(stage)
-    return load_artifact(conn, settings, task_id, prev) if prev else {}
+    """主输入：STAGE_INPUTS 的第一项；RESEARCH 没有上游，返回 {}。"""
+    inputs = STAGE_INPUTS[stage]
+    if not inputs:
+        return {}
+    return load_artifact(conn, settings, task_id, inputs[0])
 
 
 def serialize_and_validate(stage: Stage, result: StageResult) -> dict:
@@ -105,14 +113,42 @@ def _fail_stage(conn: sqlite3.Connection, task_id: str, stage: Stage, err: AppEr
     emit(conn, task_id, "validation_fail", stage=stage.value, level="error", payload=err.to_dict())
 
 
+def _rollback(conn: sqlite3.Connection, task_id: str, shots: list[int]) -> None:
+    """QC 判定回退：只标记问题镜头，重置 ASSETS/RENDER/QC 三个阶段。
+
+    VOICE 故意不重置 —— 它的输入（STORYBOARD）没变，幂等键仍命中，
+    于是会被标记为 SKIPPED 并复用已有配音。这是"精准重做"的关键。
+    """
+    if shots:
+        placeholders = ",".join("?" * len(shots))
+        conn.execute(
+            f"UPDATE shots SET status = 'RETRY', retry_count = retry_count + 1"
+            f" WHERE task_id = ? AND idx IN ({placeholders})",
+            (task_id, *shots),
+        )
+    for stage in ROLLBACK_RESET_STAGES:
+        conn.execute(
+            "UPDATE stages SET status = ?, idem_key = NULL, artifact_id = NULL, error = NULL"
+            " WHERE task_id = ? AND stage = ?",
+            (StageStatus.PENDING.value, task_id, stage.value),
+        )
+    conn.execute(
+        "UPDATE tasks SET current_stage = ?, qc_rounds = qc_rounds + 1, updated_at = ? WHERE id = ?",
+        (Stage.ASSETS.value, iso(), task_id),
+    )
+    emit(conn, task_id, "state_transition", level="warn",
+         payload={"event": "rollback", "to": Stage.ASSETS.value, "shots": shots})
+
+
 # --------------------------------------------------------------------- 单阶段
 def run_one_stage(
     conn: sqlite3.Connection, task: dict[str, Any], stage: Stage, settings: Settings, q: Queue
 ) -> TaskStatus | None:
     """执行一个阶段。返回 None 表示成功推进；返回终态表示任务结束。"""
     task_id = str(task["id"])
-    upstream = load_upstream(conn, settings, task_id, stage)
-    key = idem_key(task_id, stage, upstream)
+    inputs = load_inputs(conn, settings, task_id, stage)
+    upstream = inputs[STAGE_INPUTS[stage][0].value] if STAGE_INPUTS[stage] else {}
+    key = idem_key(task_id, stage, inputs)
     row = get_stage_row(conn, task_id, stage)
 
     # ---- 幂等命中：直接复用，不重复调用模型、不重复扣费
@@ -194,6 +230,20 @@ def run_one_stage(
             emit(conn, task_id, "retry", stage=stage.value, level="warn",
                  payload={"warn": "stage_budget_exceeded", "cost": result.cost_cents, "budget": stage_budget})
 
+        # ---- QC 是唯一的"路由器"：它决定是结束、降级，还是回退重做某几镜
+        if stage is Stage.QC:
+            decision = str(data.get("decided") or "DONE")
+            if decision == "RETRY":
+                _rollback(conn, task_id, list(data.get("retry_shots") or []))
+                return None
+            if decision in {"PARTIAL", "NEEDS_HUMAN"}:
+                conn.execute(
+                    "UPDATE tasks SET current_stage = NULL, updated_at = ? WHERE id = ?", (iso(), task_id)
+                )
+                terminal = TaskStatus.PARTIAL if decision == "PARTIAL" else TaskStatus.NEEDS_HUMAN
+                q.finish(task_id, terminal, error=str(data.get("degraded_reason") or decision))
+                return terminal
+
         _advance(conn, task_id, stage, q)
         return None
 
@@ -226,8 +276,10 @@ def run_task(conn: sqlite3.Connection, task_id: str, worker_id: str, settings: S
 
         terminal = run_one_stage(conn, task, Stage(current), settings, q)
         if terminal is not None:
-            # 保留阶段级错误（含错误码），不要用 "terminal at X" 覆盖掉
-            stage_row = get_stage_row(conn, task_id, Stage(current))
-            detail = (stage_row or {}).get("error") or f"terminal at {current}"
-            q.finish(task_id, terminal, error=detail)
+            # 阶段内部可能已经写好了终态和原因（例如 QC 判 PARTIAL），不要覆盖
+            latest = get_task(conn, task_id)
+            if latest["status"] == TaskStatus.RUNNING.value:
+                stage_row = get_stage_row(conn, task_id, Stage(current))
+                detail = (stage_row or {}).get("error") or f"terminal at {current}"
+                q.finish(task_id, terminal, error=detail)
             return terminal.value
