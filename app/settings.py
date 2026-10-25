@@ -68,6 +68,13 @@ class Settings(BaseSettings):
     # --- 视频生成（M6） ---
     video_api_key: str = ""
 
+    # --- 渲染（M3） ---
+    render_width: int = 1920
+    render_height: int = 1080
+    render_fps: int = 30
+    render_preset: str = "veryfast"
+    ffmpeg_timeout_sec: int = 300
+
     # --- 文本节奏 ---
     #: 实测：edge-tts 中文女声约 4.6–4.7 字/秒。按 4.2 估会偏长 11%，
     #: 导致成片掉到 45s 以下。改 prompt 字数区间时要同步复核这里。

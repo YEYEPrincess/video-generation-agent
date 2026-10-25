@@ -67,9 +67,10 @@ def probe(path: str | Path, timeout: int = 20) -> dict[str, Any]:
             height = int(stream.get("height") or height)
             rate = str(stream.get("r_frame_rate") or "0/1")
             try:
-                num, den = rate.split("/")
-                fps = float(num) / float(den or 1)
-            except (ValueError, ZeroDivisionError):
+                num, _, den = rate.partition("/")
+                denominator = float(den or 1)
+                fps = float(num) / denominator if denominator else 0.0
+            except ValueError:
                 fps = fps or 0.0
     return {"duration": duration, "width": width, "height": height, "has_audio": has_audio, "fps": round(fps, 2)}
 

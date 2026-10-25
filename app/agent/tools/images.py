@@ -46,11 +46,6 @@ def _font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
     return ImageFont.load_default(size=size)
 
 
-def _wrap(text: str, per_line: int) -> list[str]:
-    clean = "".join(ch for ch in text if ch.strip())
-    return [clean[i : i + per_line] for i in range(0, len(clean), per_line)][:3]
-
-
 def _palette(seed: str) -> tuple[tuple[int, int, int], tuple[int, int, int]]:
     digest = hashlib.sha1(seed.encode("utf-8")).digest()
     hue = digest[0] / 255.0
@@ -92,18 +87,15 @@ def make_placeholder(prompt: str, narration: str, out_path: Path, size: tuple[in
     image = Image.blend(image, glow, 0.35)
     draw = ImageDraw.Draw(image)
 
-    # 编号
+    # 编号 + 标记（**不画旁白**：旁白由字幕层负责，画在图上会和字幕重复）
     draw.text((int(width * 0.06), int(height * 0.08)), f"{index + 1:02d}", font=_font(int(height * 0.22)),
               fill=(255, 255, 255))
-    draw.text((int(width * 0.06), int(height * 0.33)), "PLACEHOLDER", font=_font(int(height * 0.035)),
-              fill=(255, 255, 255))
-
-    # 旁白块
-    lines = _wrap(narration, 18)
-    top = int(height * 0.62)
-    for i, line in enumerate(lines):
-        draw.text((int(width * 0.06), top + i * int(height * 0.075)), line, font=_font(int(height * 0.058)),
-                  fill=(248, 248, 252))
+    draw.text((int(width * 0.06), int(height * 0.33)), "PLACEHOLDER", font=_font(int(height * 0.030)),
+              fill=(255, 255, 255, 200))
+    draw.rectangle(
+        [int(width * 0.06), int(height * 0.40), int(width * 0.06) + int(width * 0.10), int(height * 0.40) + 4],
+        fill=(255, 255, 255),
+    )
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     image.save(out_path, format="PNG")

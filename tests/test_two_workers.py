@@ -23,6 +23,12 @@ def test_two_processes_do_not_double_execute(tmp_path):
         artifacts_dir=str(tmp_path / "art"),
         fake_stage_sleep=0.02,
         poll_sec=0.1,
+        img_provider="placeholder",
+        tts_provider="silent",
+        render_width=160,
+        render_height=90,
+        render_fps=5,
+        render_preset="ultrafast",
     )
     conn = connect(settings.db_path)
     init_db(conn)
@@ -37,6 +43,12 @@ def test_two_processes_do_not_double_execute(tmp_path):
         "ARTIFACTS_DIR": settings.artifacts_dir,
         "FAKE_STAGE_SLEEP": "0.02",
         "POLL_SEC": "0.1",
+        "IMG_PROVIDER": "placeholder",
+        "TTS_PROVIDER": "silent",
+        "RENDER_WIDTH": "160",
+        "RENDER_HEIGHT": "90",
+        "RENDER_FPS": "5",
+        "RENDER_PRESET": "ultrafast",
     }
     procs = [
         subprocess.Popen(

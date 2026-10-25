@@ -5,8 +5,10 @@
 输入一个中文主题 → 七阶段流水线（调研 / 脚本 / 分镜 / 素材 / 配音 / 渲染 / 质检）→ 45–90 秒成片。
 任务异步执行、状态机落库、支持断点续跑与故障恢复。
 
-**当前状态：M2 完成（素材与配音）**，RENDER / QC 仍是占位实现，见
-[`M0`](docs/reports/M0-服务骨架.md) / [`M1`](docs/reports/M1-文本链路.md) / [`M2`](docs/reports/M2-素材与配音.md) 报告。
+**当前状态：M3 完成（出片）**，QC 仍是占位实现。报告：
+[`M0`](docs/reports/M0-服务骨架.md) / [`M1`](docs/reports/M1-文本链路.md) / [`M2`](docs/reports/M2-素材与配音.md) / [`M3`](docs/reports/M3-渲染出片.md)
+
+![成片抽帧](docs/assets/m3-frame.png)
 
 > 未配置 `.env` 时自动使用 `MockLLM`，全链路可离线跑通；接真模型只需填 `LLM_BASE_URL / LLM_API_KEY / LLM_MODEL`。
 
@@ -69,7 +71,7 @@ docs/reports/       # 每阶段实现报告
 | M0 | 服务骨架 | ✅ |
 | M1 | 文本链路（research/script/storyboard） | ✅ |
 | M2 | 素材 + 配音 | ✅ |
-| M3 | 渲染出片 | ⬜ |
+| M3 | 渲染出片 | ✅ |
 | M4 | 分布式加固（租约/回收/故障注入） | ⬜ |
 | M5 | 质检 + 回退 + 字幕对齐 | ⬜ |
 | M6 | i2v 高光镜 + 并发 | ⬜ |

@@ -116,7 +116,7 @@ def run(ctx: StageContext) -> StageResult:
             if script.total_sec < MIN_SEC:
                 raise AppError(
                     ErrCode.E_VALIDATION,
-                    f"太短：{script.total_sec}s < {MIN_SEC}s，请把总字数写到 210–300 字",
+                    f"太短：{script.total_sec}s < {MIN_SEC}s，请把总字数写到 240–320 字",
                 )
         except AppError as exc:
             last_error = exc

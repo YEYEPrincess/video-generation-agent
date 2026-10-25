@@ -6,3 +6,4 @@
 from app.stages import fake  # noqa: F401  —— 兜底：所有阶段先有占位实现
 from app.stages import research, script, storyboard  # noqa: F401  —— M1
 from app.stages import assets, voice  # noqa: F401  —— M2
+from app.stages import render  # noqa: F401  —— M3

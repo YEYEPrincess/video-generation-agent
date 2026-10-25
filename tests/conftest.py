@@ -21,6 +21,12 @@ def settings(tmp_path) -> Settings:
         tts_provider="silent",
         assets_concurrency=2,
         img_size="960x540",
+        # 渲染也用小尺寸：单测里跑 1080p 一次要 90s
+        render_width=320,
+        render_height=180,
+        render_fps=10,
+        render_preset="ultrafast",
+        ffmpeg_timeout_sec=120,
     )
 
 
