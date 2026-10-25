@@ -1,0 +1,31 @@
+# --- Python ---
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+
+# --- è¿è¡Œæ—¶äº§ç‰© ---
+artifacts/
+app.db
+app.db-wal
+app.db-shm
+dev_out/
+*.mp4
+*.mp3
+*.srt
+
+# --- å¯†é’¥ ---
+.env
+.env.*
+
+# --- ç¼–è¾‘å™¨ / ä¸´æ—¶ ---
+.vscode/settings.json
+*.ipynb
+.DS_Store
+
+# --- ±¾µØÔËĞĞÈÕÖ¾ ---
+uvicorn.log
+uvicorn.err
+*.log

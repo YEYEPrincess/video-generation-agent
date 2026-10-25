@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>B站 AI 视频创作平台 · Agent Demo</title>
+<style>
+  :root { --bg:#0f1115; --panel:#171a21; --line:#262b36; --txt:#e6e8ee; --dim:#8b93a7;
+          --brand:#fb7299; --ok:#3ddc97; --warn:#ffb454; --err:#ff6b6b; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--txt);
+         font:14px/1.6 -apple-system,"Segoe UI","Microsoft YaHei",sans-serif; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .sub { color: var(--dim); font-size: 12px; margin-bottom: 24px; }
+  .row { display:flex; gap:10px; }
+  input { flex:1; background:var(--panel); border:1px solid var(--line); color:var(--txt);
+          border-radius:10px; padding:12px 14px; font-size:14px; outline:none; }
+  input:focus { border-color: var(--brand); }
+  button { background:var(--brand); border:0; color:#fff; font-weight:600; border-radius:10px;
+           padding:12px 20px; cursor:pointer; }
+  button:disabled { opacity:.5; cursor:not-allowed; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px; margin-top:18px; }
+  .bar { height:8px; background:#0b0d11; border-radius:99px; overflow:hidden; margin:10px 0 14px; }
+  .bar > i { display:block; height:100%; width:0; background:linear-gradient(90deg,var(--brand),#ff9fbd);
+             transition:width .35s ease; }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; }
+  .chip { font-size:12px; padding:5px 10px; border-radius:99px; border:1px solid var(--line); color:var(--dim); }
+  .chip.run { border-color:var(--warn); color:var(--warn); }
+  .chip.done { border-color:var(--ok); color:var(--ok); }
+  .chip.fail { border-color:var(--err); color:var(--err); }
+  .log { font:12px/1.5 ui-monospace,Consolas,monospace; color:var(--dim); max-height:260px;
+         overflow:auto; margin-top:12px; }
+  .log b { color:var(--txt); font-weight:500; }
+  .meta { display:flex; justify-content:space-between; color:var(--dim); font-size:12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>B站 AI 视频创作平台 <span style="color:var(--brand)">/</span> 任务编排 Agent</h1>
+  <div class="sub">输入主题 → 七阶段流水线 → 成片（M0：骨架联调，各阶段为占位实现）</div>
+
+  <div class="row">
+    <input id="topic" placeholder="例如：为什么年轻人开始重看老动画" value="为什么年轻人开始重看老动画" />
+    <button id="go">生成</button>
+  </div>
+
+  <div class="card" id="panel" style="display:none">
+    <div class="meta"><span id="taskId"></span><span id="status"></span></div>
+    <div class="bar"><i id="fill"></i></div>
+    <div class="chips" id="chips"></div>
+    <div class="log" id="log"></div>
+  </div>
+</div>
+<script>
+const $ = (id) => document.getElementById(id);
+let timer = null, lastEventId = 0;
+
+async function submit() {
+  const topic = $("topic").value.trim();
+  if (!topic) return;
+  $("go").disabled = true;
+  const r = await fetch("/tasks", {
+    method: "POST",
+    headers: {"content-type": "application/json", "Idempotency-Key": crypto.randomUUID()},
+    body: JSON.stringify({topic}),
+  });
+  const data = await r.json();
+  $("panel").style.display = "block";
+  $("taskId").textContent = "task: " + data.task_id;
+  $("chips").innerHTML = ""; $("log").innerHTML = ""; lastEventId = 0;
+  clearInterval(timer);
+  poll(data.task_id);
+  timer = setInterval(() => poll(data.task_id), 800);
+}
+
+async function poll(id) {
+  const r = await fetch("/tasks/" + id);
+  if (!r.ok) return;
+  const d = await r.json();
+  const {done, total} = d.progress;
+  $("fill").style.width = (100 * done / total) + "%";
+  $("status").textContent = `${d.task.status} · ${done}/${total} · ${d.task.budget_spent_cents}¢`;
+  render(d.stages);
+  await pullEvents(id);
+  if (["DONE","FAILED","PARTIAL","NEEDS_HUMAN"].includes(d.task.status)) {
+    clearInterval(timer); $("go").disabled = false;
+  }
+}
+
+function render(stages) {
+  $("chips").innerHTML = stages.map(s => {
+    const cls = s.status === "DONE" || s.status === "SKIPPED" ? "done"
+              : s.status === "RUNNING" ? "run"
+              : s.status === "FAILED" ? "fail" : "";
+    return `<span class="chip ${cls}">${s.stage}${s.status === "SKIPPED" ? " ↺" : ""}</span>`;
+  }).join("");
+}
+
+async function pullEvents(id) {
+  const r = await fetch(`/tasks/${id}/events?after_id=${lastEventId}&limit=200`);
+  const d = await r.json();
+  if (!d.events.length) return;
+  const box = $("log");
+  for (const e of d.events) {
+    lastEventId = Math.max(lastEventId, e.id);
+    const line = document.createElement("div");
+    line.innerHTML = `<b>${e.type}</b> ${e.stage || ""} ${e.duration_ms ? e.duration_ms + "ms" : ""} `
+      + `<span>${e.payload_json ? e.payload_json.slice(0, 120) : ""}</span>`;
+    box.appendChild(line);
+  }
+  box.scrollTop = box.scrollHeight;
+}
+
+$("go").onclick = submit;
+$("topic").addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+[project]
+name = "bili-video-agent"
+version = "0.1.0"
+description = "B站 AI 视频创作平台 · 任务编排 Agent 服务（demo）"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
+filterwarnings = ["ignore::DeprecationWarning"]
