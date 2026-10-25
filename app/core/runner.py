@@ -212,6 +212,13 @@ def run_task(conn: sqlite3.Connection, task_id: str, worker_id: str, settings: S
                  payload={"event": "lease_lost", "worker": worker_id})
             return str(task["status"])
 
+        # 死信闸：反复被抢说明 worker 一直在崩，再重试就是空转
+        if int(task["attempt"]) > max(1, settings.max_attempt):
+            q.finish(task_id, TaskStatus.FAILED, error=f"E_LOOP: leases={task['attempt']} 超过 {settings.max_attempt}")
+            emit(conn, task_id, "state_transition", level="error",
+                 payload={"event": "dead_letter", "leases": task["attempt"]})
+            return TaskStatus.FAILED.value
+
         current = task["current_stage"]
         if not current:
             q.finish(task_id, TaskStatus.DONE)
@@ -219,5 +226,8 @@ def run_task(conn: sqlite3.Connection, task_id: str, worker_id: str, settings: S
 
         terminal = run_one_stage(conn, task, Stage(current), settings, q)
         if terminal is not None:
-            q.finish(task_id, terminal, error=f"terminal at {current}")
+            # 保留阶段级错误（含错误码），不要用 "terminal at X" 覆盖掉
+            stage_row = get_stage_row(conn, task_id, Stage(current))
+            detail = (stage_row or {}).get("error") or f"terminal at {current}"
+            q.finish(task_id, terminal, error=detail)
             return terminal.value

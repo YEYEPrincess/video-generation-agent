@@ -8,12 +8,17 @@ __pycache__/
 
 # --- è¿è¡Œæ—¶äº§ç‰© ---
 artifacts/
+artifacts_chaos/
 app.db
 app.db-wal
 app.db-shm
+chaos.db
+chaos.db-wal
+chaos.db-shm
 dev_out/
 *.mp4
 *.mp3
+*.wav
 *.srt
 
 # --- å¯†é’¥ ---
@@ -24,8 +29,6 @@ dev_out/
 .vscode/settings.json
 *.ipynb
 .DS_Store
-
-# --- ±¾µØÔËĞĞÈÕÖ¾ ---
 uvicorn.log
 uvicorn.err
 *.log
