@@ -38,10 +38,10 @@ def _kenburns(image: Path, out: Path, duration: float, settings: Settings) -> I2
     """降级方案：静图 + 缓慢推近，产出一个真 mp4（不是伪造的文件名）。"""
     width, height = settings.render_width, settings.render_height
     frames = max(1, int(round(duration * settings.render_fps)))
-    # 同 build_clip：zoompan 必须"一张图 + d=总帧数"，否则 zoom 每帧重置
+    # 同 build_clip：一张图 + d=总帧数；输入放大 2 倍来压掉 zoompan 的整数取整抖动
     vf = (
-        f"scale={width}:{height}:force_original_aspect_ratio=increase,"
-        f"crop={width}:{height},setsar=1,"
+        f"scale={width * 2}:{height * 2}:force_original_aspect_ratio=increase:flags=lanczos,"
+        f"crop={width * 2}:{height * 2},setsar=1,"
         f"zoompan=z='min(zoom+0.0012,1.18)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)'"
         f":d={frames}:s={width}x{height}:fps={settings.render_fps},format=yuv420p"
     )

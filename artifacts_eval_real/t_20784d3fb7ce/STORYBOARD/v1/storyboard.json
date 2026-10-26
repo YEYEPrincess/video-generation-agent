@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "shots": [
+    {
+      "idx": 0,
+      "segment_idx": 0,
+      "narration": "通关塞尔达那天，我盯着地图上剩下的47个神庙，突然不想玩了。",
+      "visual_prompt": "通关塞尔达那天我盯着地图上剩下的，游戏概念原画，高对比，动态构图，粒子特效，近景特写，16:9，画面无文字",
+      "motion": "kenburns_in",
+      "kind_hint": "image",
+      "est_sec": 6.5
+    },
+    {
+      "idx": 1,
+      "segment_idx": 0,
+      "narration": "不是内容不够，是我得自己决定先去哪、先做啥，这活儿太累了。",
+      "visual_prompt": "不是内容不够是我得自己决定先去哪，游戏概念原画，高对比，动态构图，粒子特效，中景，16:9，画面无文字",
+      "motion": "kenburns_out",
+      "kind_hint": "image",
+      "est_sec": 6.3
+    },
+    {
+      "idx": 2,
+      "segment_idx": 1,
+      "narration": "艾尔登法环的玩家平均弃坑点，不在哪个Boss，而在打开地图那一刻。",
+      "visual_prompt": "艾尔登法环的玩家平均弃坑点不在哪，游戏概念原画，高对比，动态构图，粒子特效，全景，16:9，画面无文字",
+      "motion": "pan_lr",
+      "kind_hint": "image",
+      "est_sec": 7.2
+    },
+    {
+      "idx": 3,
+      "segment_idx": 1,
+      "narration": "满屏问号铺开，你先愣三秒，然后关掉游戏。",
+      "visual_prompt": "满屏问号铺开你先愣三秒然后关掉游，游戏概念原画，高对比，动态构图，粒子特效，近景特写，16:9，画面无文字",
+      "motion": "kenburns_in",
+      "kind_hint": "image",
+      "est_sec": 4.3
+    },
+    {
+      "idx": 4,
+      "segment_idx": 2,
+      "narration": "买游戏花了三百块，结果最累的环节是决定下一步去哪。这哪是玩游戏，这是给自己当任务策划，还是不发工资那种。",
+      "visual_prompt": "买游戏花了三百块结果最累的环节是，游戏概念原画，高对比，动态构图，粒子特效，中景，16:9，画面无文字",
+      "motion": "kenburns_out",
+      "kind_hint": "image",
+      "est_sec": 11.3
+    },
+    {
+      "idx": 5,
+      "segment_idx": 3,
+      "narration": "问题不在量大，在清单式设计。它把选择权丢给你，又不给你方向，自主性变成了负担，玩着玩着就电子阳痿了。",
+      "visual_prompt": "问题不在量大在清单式设计它把选择，游戏概念原画，高对比，动态构图，粒子特效，全景，16:9，画面无文字",
+      "motion": "pan_lr",
+      "kind_hint": "image",
+      "est_sec": 10.9
+    },
+    {
+      "idx": 6,
+      "segment_idx": 4,
+      "narration": "好的开放世界，是让你走着走着撞见一件事。罐头式开放世界，是让你站在路口算性价比。差的就是这一口气。",
+      "visual_prompt": "好的开放世界是让你走着走着撞见一，游戏概念原画，高对比，动态构图，粒子特效，近景特写，16:9，画面无文字",
+      "motion": "kenburns_in",
+      "kind_hint": "image",
+      "est_sec": 10.7
+    },
+    {
+      "idx": 7,
+      "segment_idx": 5,
+      "narration": "所以下次打开地图前先问自己一句：我是想去那儿，还是怕漏了什么？",
+      "visual_prompt": "所以下次打开地图前先问自己一句我，游戏概念原画，高对比，动态构图，粒子特效，中景，16:9，画面无文字",
+      "motion": "kenburns_out",
+      "kind_hint": "image",
+      "est_sec": 6.7
+    }
+  ]
+}

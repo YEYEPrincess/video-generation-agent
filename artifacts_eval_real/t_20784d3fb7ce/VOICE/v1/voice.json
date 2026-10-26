@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "per_shot": [
+    {
+      "idx": 0,
+      "path": "t_20784d3fb7ce/VOICE/media/shot_00.mp3",
+      "dur_sec": 5.71
+    },
+    {
+      "idx": 1,
+      "path": "t_20784d3fb7ce/VOICE/media/shot_01.mp3",
+      "dur_sec": 5.4
+    },
+    {
+      "idx": 2,
+      "path": "t_20784d3fb7ce/VOICE/media/shot_02.mp3",
+      "dur_sec": 5.93
+    },
+    {
+      "idx": 3,
+      "path": "t_20784d3fb7ce/VOICE/media/shot_03.mp3",
+      "dur_sec": 4.08
+    },
+    {
+      "idx": 4,
+      "path": "t_20784d3fb7ce/VOICE/media/shot_04.mp3",
+      "dur_sec": 10.37
+    },
+    {
+      "idx": 5,
+      "path": "t_20784d3fb7ce/VOICE/media/shot_05.mp3",
+      "dur_sec": 10.25
+    },
+    {
+      "idx": 6,
+      "path": "t_20784d3fb7ce/VOICE/media/shot_06.mp3",
+      "dur_sec": 10.46
+    },
+    {
+      "idx": 7,
+      "path": "t_20784d3fb7ce/VOICE/media/shot_07.mp3",
+      "dur_sec": 5.88
+    }
+  ],
+  "srt_path": "t_20784d3fb7ce/VOICE/audio.srt",
+  "total_dur": 58.08,
+  "voice": "zh-CN-XiaoxiaoNeural",
+  "alignment": "estimate",
+  "degraded_count": 0
+}

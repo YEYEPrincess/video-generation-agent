@@ -1,0 +1,69 @@
+{
+  "version": 1,
+  "checks": [
+    {
+      "name": "duration_in_range",
+      "passed": true,
+      "detail": "50.58s ∈ [45.0,90.0]",
+      "severity": "block"
+    },
+    {
+      "name": "no_black",
+      "passed": true,
+      "detail": "0 段",
+      "severity": "block"
+    },
+    {
+      "name": "no_silence",
+      "passed": true,
+      "detail": "0 段",
+      "severity": "block"
+    },
+    {
+      "name": "no_clipping",
+      "passed": true,
+      "detail": "peak=-5.8dB（接近 0 即削波）",
+      "severity": "block"
+    },
+    {
+      "name": "audio_loud_enough",
+      "passed": true,
+      "detail": "peak=-5.8dB",
+      "severity": "warn"
+    },
+    {
+      "name": "subtitle_exists",
+      "passed": true,
+      "detail": "t_014e01a0be53/VOICE/audio.srt",
+      "severity": "block"
+    },
+    {
+      "name": "subtitle_covers_audio",
+      "passed": true,
+      "detail": "srt 结束 50.56 vs 音频 50.56",
+      "severity": "block"
+    },
+    {
+      "name": "shot_quality",
+      "passed": true,
+      "detail": "全部正常",
+      "severity": "block"
+    },
+    {
+      "name": "audio_not_degraded",
+      "passed": true,
+      "detail": "0 段为静音兜底",
+      "severity": "warn"
+    },
+    {
+      "name": "i2v_effective",
+      "passed": false,
+      "detail": "第 [0] 镜未用上视频生成，已回落运动图片",
+      "severity": "warn"
+    }
+  ],
+  "retry_shots": [],
+  "score": 95,
+  "degraded_reason": null,
+  "decided": "DONE"
+}

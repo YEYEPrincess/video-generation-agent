@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "shots": [
+    {
+      "idx": 0,
+      "segment_idx": 0,
+      "narration": "一个白面具剪影，比任何台词都先让你记住《空洞骑士》。这就是视觉符号的威力——三秒认出，一辈子忘不掉。",
+      "visual_prompt": "一个白面具剪影比任何台词都先让你，游戏概念原画，高对比，动态构图，粒子特效，近景特写，16:9，画面无文字",
+      "motion": "kenburns_in",
+      "kind_hint": "image",
+      "est_sec": 10.9
+    },
+    {
+      "idx": 1,
+      "segment_idx": 1,
+      "narration": "独立游戏的美术不是画得更好，而是用有限资源造一个能瞬间识别的符号。",
+      "visual_prompt": "独立游戏的美术不是画得更好而是用，游戏概念原画，高对比，动态构图，粒子特效，中景，16:9，画面无文字",
+      "motion": "kenburns_out",
+      "kind_hint": "image",
+      "est_sec": 7.2
+    },
+    {
+      "idx": 2,
+      "segment_idx": 1,
+      "narration": "三个人、半年、零美术外包，靠一套色板就让玩家主动截图转发。",
+      "visual_prompt": "三个人半年零美术外包靠一套色板就，游戏概念原画，高对比，动态构图，粒子特效，全景，16:9，画面无文字",
+      "motion": "pan_lr",
+      "kind_hint": "image",
+      "est_sec": 6.3
+    },
+    {
+      "idx": 3,
+      "segment_idx": 2,
+      "narration": "为什么越穷越有辨识度？因为资源少，逼你砍掉所有杂音，只留最狠的那一笔。",
+      "visual_prompt": "为什么越穷越有辨识度因为资源少逼，游戏概念原画，高对比，动态构图，粒子特效，近景特写，16:9，画面无文字",
+      "motion": "kenburns_in",
+      "kind_hint": "image",
+      "est_sec": 7.6
+    },
+    {
+      "idx": 4,
+      "segment_idx": 2,
+      "narration": "像素和低多边形不是妥协，是主动选择。",
+      "visual_prompt": "像素和低多边形不是妥协是主动选择，游戏概念原画，高对比，动态构图，粒子特效，中景，16:9，画面无文字",
+      "motion": "kenburns_out",
+      "kind_hint": "image",
+      "est_sec": 3.9
+    },
+    {
+      "idx": 5,
+      "segment_idx": 3,
+      "narration": "3A 那边反过来了，预算越高越怕出错，材质、光影、写实度全往同一个安全区挤，精致到最后互相撞脸。",
+      "visual_prompt": "3A那边反过来了预算越高越怕出错，游戏概念原画，高对比，动态构图，粒子特效，全景，16:9，画面无文字",
+      "motion": "pan_lr",
+      "kind_hint": "image",
+      "est_sec": 10.4
+    },
+    {
+      "idx": 6,
+      "segment_idx": 4,
+      "narration": "所以独立美术的胜负手从来不在画技，在符号设计。你脑子里第一个蹦出来的游戏剪影，是什么？",
+      "visual_prompt": "所以独立美术的胜负手从来不在画技，游戏概念原画，高对比，动态构图，粒子特效，近景特写，16:9，画面无文字",
+      "motion": "kenburns_in",
+      "kind_hint": "image",
+      "est_sec": 9.3
+    }
+  ]
+}

@@ -34,12 +34,13 @@ from app.db import connect, init_db  # noqa: E402
 from app.settings import Settings  # noqa: E402
 
 
-def load_golden(path: Path, limit: int) -> list[dict]:
+def load_golden(path: Path, limit: int, offset: int = 0) -> list[dict]:
     rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
-    return rows[:limit]
+    return rows[offset : offset + limit]
 
 
-def draft_settings(base: Settings | None = None) -> Settings:
+def draft_settings(base: Settings | None = None, db_path: str = "eval.db",
+                   artifacts_dir: str = "artifacts_eval") -> Settings:
     s = base or Settings()
     return s.model_copy(
         update={
@@ -47,8 +48,8 @@ def draft_settings(base: Settings | None = None) -> Settings:
             "render_height": 720,
             "render_fps": 24,
             "render_preset": "ultrafast",
-            "artifacts_dir": "artifacts_eval",
-            "db_path": "eval.db",
+            "artifacts_dir": artifacts_dir,
+            "db_path": db_path,
         }
     )
 
@@ -212,19 +213,24 @@ def write_report(results: list[dict], summary: dict, config: dict, out: Path) ->
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=20)
+    ap.add_argument("--offset", type=int, default=0, help="跳过前 N 条（续跑用）")
     ap.add_argument("--out", default="eval/report.md")
     ap.add_argument("--json", default="eval/results.json")
     ap.add_argument("--keep", action="store_true", help="复用已有 eval.db（默认清空）")
+    ap.add_argument("--db", default="eval.db")
     args = ap.parse_args()
 
-    settings = draft_settings()
+    settings = draft_settings(
+        db_path=args.db,
+        artifacts_dir="artifacts_eval_real" if args.db != "eval.db" else "artifacts_eval",
+    )
     if not args.keep:
         for suffix in ("", "-wal", "-shm"):
             Path(settings.db_path + suffix).unlink(missing_ok=True)
 
     conn = connect(settings.db_path)
     init_db(conn)
-    items = load_golden(ROOT / "eval" / "golden.jsonl", args.limit)
+    items = load_golden(ROOT / "eval" / "golden.jsonl", args.limit, args.offset)
     workdir = Path("dev_out/eval"); workdir.mkdir(parents=True, exist_ok=True)
 
     print(f"[eval] {len(items)} tasks, model={settings.llm_model or 'mock'}, "

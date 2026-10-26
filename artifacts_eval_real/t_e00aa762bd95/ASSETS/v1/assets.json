@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "shots": [
+    {
+      "idx": 0,
+      "kind": "video",
+      "path": "t_e00aa762bd95/ASSETS/media/shot_00.mp4",
+      "width": 1344,
+      "height": 768,
+      "sim_score": null,
+      "degraded": false,
+      "provider": "kenburns",
+      "cost_cents": 0,
+      "attempts": 1
+    },
+    {
+      "idx": 1,
+      "kind": "image",
+      "path": "t_e00aa762bd95/ASSETS/media/shot_01.png",
+      "width": 1344,
+      "height": 768,
+      "sim_score": null,
+      "degraded": false,
+      "provider": "api",
+      "cost_cents": 0,
+      "attempts": 1
+    },
+    {
+      "idx": 2,
+      "kind": "image",
+      "path": "t_e00aa762bd95/ASSETS/media/shot_02.png",
+      "width": 1344,
+      "height": 768,
+      "sim_score": null,
+      "degraded": false,
+      "provider": "api",
+      "cost_cents": 0,
+      "attempts": 1
+    },
+    {
+      "idx": 3,
+      "kind": "image",
+      "path": "t_e00aa762bd95/ASSETS/media/shot_03.png",
+      "width": 1344,
+      "height": 768,
+      "sim_score": null,
+      "degraded": false,
+      "provider": "api",
+      "cost_cents": 0,
+      "attempts": 1
+    },
+    {
+      "idx": 4,
+      "kind": "image",
+      "path": "t_e00aa762bd95/ASSETS/media/shot_04.png",
+      "width": 1344,
+      "height": 768,
+      "sim_score": null,
+      "degraded": false,
+      "provider": "api",
+      "cost_cents": 0,
+      "attempts": 1
+    },
+    {
+      "idx": 5,
+      "kind": "image",
+      "path": "t_e00aa762bd95/ASSETS/media/shot_05.png",
+      "width": 1344,
+      "height": 768,
+      "sim_score": null,
+      "degraded": false,
+      "provider": "api",
+      "cost_cents": 0,
+      "attempts": 1
+    },
+    {
+      "idx": 6,
+      "kind": "image",
+      "path": "t_e00aa762bd95/ASSETS/media/shot_06.png",
+      "width": 1344,
+      "height": 768,
+      "sim_score": null,
+      "degraded": false,
+      "provider": "api",
+      "cost_cents": 0,
+      "attempts": 1
+    },
+    {
+      "idx": 7,
+      "kind": "image",
+      "path": "t_e00aa762bd95/ASSETS/media/shot_07.png",
+      "width": 1344,
+      "height": 768,
+      "sim_score": null,
+      "degraded": false,
+      "provider": "api",
+      "cost_cents": 0,
+      "attempts": 1
+    },
+    {
+      "idx": 8,
+      "kind": "image",
+      "path": "t_e00aa762bd95/ASSETS/media/shot_08.png",
+      "width": 1344,
+      "height": 768,
+      "sim_score": null,
+      "degraded": false,
+      "provider": "api",
+      "cost_cents": 0,
+      "attempts": 1
+    }
+  ],
+  "total_cost_cents": 0,
+  "degraded_count": 0
+}

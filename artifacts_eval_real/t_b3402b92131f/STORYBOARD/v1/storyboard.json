@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "shots": [
+    {
+      "idx": 0,
+      "segment_idx": 0,
+      "narration": "翻遍十万张训练图，完整露出手的不到三成。大部分手要么插兜，要么被裁掉，要么糊成一团。",
+      "visual_prompt": "翻遍十万张训练图完整露出手的不到，科技感三维渲染，冷色调，细线光效，暗背景，近景特写，16:9，画面无文字",
+      "motion": "kenburns_in",
+      "kind_hint": "image",
+      "est_sec": 9.1
+    },
+    {
+      "idx": 1,
+      "segment_idx": 0,
+      "narration": "模型压根没见过几双好手。",
+      "visual_prompt": "模型压根没见过几双好手，科技感三维渲染，冷色调，细线光效，暗背景，中景，16:9，画面无文字",
+      "motion": "kenburns_out",
+      "kind_hint": "image",
+      "est_sec": 2.6
+    },
+    {
+      "idx": 2,
+      "segment_idx": 1,
+      "narration": "你让它画脸，秒出神作。一到手指，就开始融合，六根、七根、关节反着长。不是它笨，是它学的东西里手本来就少。",
+      "visual_prompt": "你让它画脸秒出神作一到手指就开始，科技感三维渲染，冷色调，细线光效，暗背景，全景，16:9，画面无文字",
+      "motion": "pan_lr",
+      "kind_hint": "image",
+      "est_sec": 11.3
+    },
+    {
+      "idx": 3,
+      "segment_idx": 2,
+      "narration": "扩散模型学的是像素统计，不是骨骼结构。",
+      "visual_prompt": "扩散模型学的是像素统计不是骨骼结，科技感三维渲染，冷色调，细线光效，暗背景，近景特写，16:9，画面无文字",
+      "motion": "kenburns_in",
+      "kind_hint": "image",
+      "est_sec": 4.1
+    },
+    {
+      "idx": 4,
+      "segment_idx": 2,
+      "narration": "手指是全身关节最多的地方，二十多个自由度，它却只记住了模糊的平均值。",
+      "visual_prompt": "手指是全身关节最多的地方二十多个，科技感三维渲染，冷色调，细线光效，暗背景，中景，16:9，画面无文字",
+      "motion": "kenburns_out",
+      "kind_hint": "image",
+      "est_sec": 7.4
+    },
+    {
+      "idx": 5,
+      "segment_idx": 3,
+      "narration": "所以手部关键点检测在训练里特别关键，得有人把关节位置标出来，模型才知道手指该往哪长。",
+      "visual_prompt": "所以手部关键点检测在训练里特别关，科技感三维渲染，冷色调，细线光效，暗背景，全景，16:9，画面无文字",
+      "motion": "pan_lr",
+      "kind_hint": "image",
+      "est_sec": 9.1
+    },
+    {
+      "idx": 6,
+      "segment_idx": 4,
+      "narration": "下次看到六指失败案例，别急着笑。那不是AI的极限，是数据的缺口。你数数自己相册里，有几张手是清楚完整的？",
+      "visual_prompt": "下次看到六指失败案例别急着笑那不，科技感三维渲染，冷色调，细线光效，暗背景，近景特写，16:9，画面无文字",
+      "motion": "kenburns_in",
+      "kind_hint": "image",
+      "est_sec": 11.3
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "shots": [
+    {
+      "idx": 0,
+      "segment_idx": 0,
+      "narration": "手机厂宣传15分钟充满，没告诉你这块电池设计寿命只有两年。",
+      "visual_prompt": "手机厂宣传15分钟充满没告诉你这，科技感三维渲染，冷色调，细线光效，暗背景，近景特写，16:9，画面无文字",
+      "motion": "kenburns_in",
+      "kind_hint": "image",
+      "est_sec": 6.3
+    },
+    {
+      "idx": 1,
+      "segment_idx": 0,
+      "narration": "同样容量的电池，快充版循环800次就明显衰减，慢充版能撑到1500次。",
+      "visual_prompt": "同样容量的电池快充版循环800次，科技感三维渲染，冷色调，细线光效，暗背景，中景，16:9，画面无文字",
+      "motion": "kenburns_out",
+      "kind_hint": "image",
+      "est_sec": 7.6
+    },
+    {
+      "idx": 2,
+      "segment_idx": 1,
+      "narration": "你的电池不是用坏的，是被大电流和高温一点点磨掉的。",
+      "visual_prompt": "你的电池不是用坏的是被大电流和高，科技感三维渲染，冷色调，细线光效，暗背景，全景，16:9，画面无文字",
+      "motion": "pan_lr",
+      "kind_hint": "image",
+      "est_sec": 5.4
+    },
+    {
+      "idx": 3,
+      "segment_idx": 1,
+      "narration": "快充时电流灌进去，电池内部温度往上蹿，正极材料的结构就在这反复的热胀冷缩里松动。",
+      "visual_prompt": "快充时电流灌进去电池内部温度往上，科技感三维渲染，冷色调，细线光效，暗背景，近景特写，16:9，画面无文字",
+      "motion": "kenburns_in",
+      "kind_hint": "image",
+      "est_sec": 8.7
+    },
+    {
+      "idx": 4,
+      "segment_idx": 2,
+      "narration": "更狠的是锂枝晶。",
+      "visual_prompt": "更狠的是锂枝晶，科技感三维渲染，冷色调，细线光效，暗背景，中景，16:9，画面无文字",
+      "motion": "kenburns_out",
+      "kind_hint": "image",
+      "est_sec": 1.7
+    },
+    {
+      "idx": 5,
+      "segment_idx": 2,
+      "narration": "大电流下锂离子来不及嵌进负极石墨，就在表面析出成金属锂，长成针状结晶，戳破隔膜就是内短路。",
+      "visual_prompt": "大电流下锂离子来不及嵌进负极石墨，科技感三维渲染，冷色调，细线光效，暗背景，全景，16:9，画面无文字",
+      "motion": "pan_lr",
+      "kind_hint": "image",
+      "est_sec": 9.8
+    },
+    {
+      "idx": 6,
+      "segment_idx": 3,
+      "narration": "负极表面的SEI膜也一样，高温下不停增厚，把能用的锂越锁越死。",
+      "visual_prompt": "负极表面的SEI膜也一样高温下不，科技感三维渲染，冷色调，细线光效，暗背景，近景特写，16:9，画面无文字",
+      "motion": "kenburns_in",
+      "kind_hint": "image",
+      "est_sec": 6.7
+    },
+    {
+      "idx": 7,
+      "segment_idx": 3,
+      "narration": "容量就这么一格一格掉下去，你只觉得是手机老了。",
+      "visual_prompt": "容量就这么一格一格掉下去你只觉得，科技感三维渲染，冷色调，细线光效，暗背景，中景，16:9，画面无文字",
+      "motion": "kenburns_out",
+      "kind_hint": "image",
+      "est_sec": 5.0
+    },
+    {
+      "idx": 8,
+      "segment_idx": 4,
+      "narration": "所以快充不是不能用，是把它当日常主食，就等于提前给电池判了刑。你昨晚插的是快充还是慢充？",
+      "visual_prompt": "所以快充不是不能用是把它当日常主，科技感三维渲染，冷色调，细线光效，暗背景，全景，16:9，画面无文字",
+      "motion": "pan_lr",
+      "kind_hint": "image",
+      "est_sec": 9.6
+    }
+  ]
+}

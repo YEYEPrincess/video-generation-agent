@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "shots": [
+    {
+      "idx": 0,
+      "segment_idx": 0,
+      "narration": "《教父2》影评人排得比第一部高，票房只有前作六成。",
+      "visual_prompt": "教父2影评人排得比第一部高票房只，电影感剧照，低饱和，宽画幅，气氛光，近景特写，16:9，画面无文字",
+      "motion": "kenburns_in",
+      "kind_hint": "image",
+      "est_sec": 5.4
+    },
+    {
+      "idx": 1,
+      "segment_idx": 0,
+      "narration": "这不是个例，续集魔咒背后有笔账：首周票房吃前作口碑，第二周就吃失望。",
+      "visual_prompt": "这不是个例续集魔咒背后有笔账首周，电影感剧照，低饱和，宽画幅，气氛光，中景，16:9，画面无文字",
+      "motion": "kenburns_out",
+      "kind_hint": "image",
+      "est_sec": 7.4
+    },
+    {
+      "idx": 2,
+      "segment_idx": 1,
+      "narration": "你重看第一部的时候，大脑已经偷偷动过手了。那十分钟拖沓的戏、那个记不住名字的配角，全被剪掉了。",
+      "visual_prompt": "你重看第一部的时候大脑已经偷偷动，电影感剧照，低饱和，宽画幅，气氛光，全景，16:9，画面无文字",
+      "motion": "pan_lr",
+      "kind_hint": "image",
+      "est_sec": 10.2
+    },
+    {
+      "idx": 3,
+      "segment_idx": 1,
+      "narration": "你记住的是一个不存在的高光版本。",
+      "visual_prompt": "你记住的是一个不存在的高光版本，电影感剧照，低饱和，宽画幅，气氛光，近景特写，16:9，画面无文字",
+      "motion": "kenburns_in",
+      "kind_hint": "image",
+      "est_sec": 3.5
+    },
+    {
+      "idx": 4,
+      "segment_idx": 2,
+      "narration": "这就是首因效应。第一次看的时候，人物是新的、世界是新的，那种冲击没法复刻。",
+      "visual_prompt": "这就是首因效应第一次看的时候人物，电影感剧照，低饱和，宽画幅，气氛光，中景，16:9，画面无文字",
+      "motion": "kenburns_out",
+      "kind_hint": "image",
+      "est_sec": 8.0
+    },
+    {
+      "idx": 5,
+      "segment_idx": 2,
+      "narration": "续集再精致，也只是在你已经熟悉的房间里换家具。",
+      "visual_prompt": "续集再精致也只是在你已经熟悉的房，电影感剧照，低饱和，宽画幅，气氛光，全景，16:9，画面无文字",
+      "motion": "pan_lr",
+      "kind_hint": "image",
+      "est_sec": 5.0
+    },
+    {
+      "idx": 6,
+      "segment_idx": 3,
+      "narration": "所以系列电影票房真正的对手不是同档期，是观众脑子里那版被怀旧消费反复打磨的剪辑。",
+      "visual_prompt": "所以系列电影票房真正的对手不是同，电影感剧照，低饱和，宽画幅，气氛光，近景特写，16:9，画面无文字",
+      "motion": "kenburns_in",
+      "kind_hint": "image",
+      "est_sec": 8.7
+    },
+    {
+      "idx": 7,
+      "segment_idx": 3,
+      "narration": "制片方算得清首周，算不清记忆。",
+      "visual_prompt": "制片方算得清首周算不清记忆，电影感剧照，低饱和，宽画幅，气氛光，中景，16:9，画面无文字",
+      "motion": "kenburns_out",
+      "kind_hint": "image",
+      "est_sec": 3.3
+    },
+    {
+      "idx": 8,
+      "segment_idx": 4,
+      "narration": "下次骂续集之前，先问一句：你比的是电影，还是你自己第一次看它那晚的样子？",
+      "visual_prompt": "下次骂续集之前先问一句你比的是电，电影感剧照，低饱和，宽画幅，气氛光，全景，16:9，画面无文字",
+      "motion": "pan_lr",
+      "kind_hint": "image",
+      "est_sec": 7.8
+    }
+  ]
+}

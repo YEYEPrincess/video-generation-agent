@@ -64,11 +64,17 @@ def build_clip(
 ) -> None:
     base = f"scale={width}:{height}:force_original_aspect_ratio=increase,crop={width}:{height},setsar=1"
 
+    # 抗抖：zoompan 的 x/y 会被截断成整数像素，1x 输入时推近会让裁剪窗口
+    # 在 0/1 像素之间来回跳（实测帧差 0.11→1.63→0.37 的锯齿）。
+    # 把输入放大 2 倍再做 zoompan，取整误差就摊到 0.5px，输出仍是目标尺寸。
+    big = f"scale={width * 2}:{height * 2}:force_original_aspect_ratio=increase:flags=lanczos," \
+          f"crop={width * 2}:{height * 2},setsar=1"
+
     if motion == "none":
         vf = f"{base},format=yuv420p"
         source_args = ["-loop", "1", "-framerate", str(fps), "-i", str(image)]
     else:
-        # ⚠️ 关键：zoompan 的 d 必须等于**总帧数**，并且只喂一张图。
+        # ⚠️ zoompan 的 d 必须等于**总帧数**，并且只喂一张图。
         # 用 `-loop 1` 喂多帧 + `d=1` 会让 zoom 每帧重置 —— 效果等于没动。
         frames = max(1, int(round(duration * fps)))
         if motion == "kenburns_out":
@@ -81,7 +87,7 @@ def build_clip(
             z = "min(zoom+0.0010,1.15)"
             x = "iw/2-(iw/zoom/2)"
         vf = (
-            f"{base},zoompan=z='{z}':x='{x}':y='ih/2-(ih/zoom/2)'"
+            f"{big},zoompan=z='{z}':x='{x}':y='ih/2-(ih/zoom/2)'"
             f":d={frames}:s={width}x{height}:fps={fps},format=yuv420p"
         )
         source_args = ["-i", str(image)]
@@ -181,7 +187,10 @@ def mux_with_subtitles(
     args = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
             "-i", video_name, "-i", audio_name,
             "-vf", vf, "-c:v", "libx264", "-preset", preset, "-crf", "22",
-            "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "128k"]
+            "-pix_fmt", "yuv420p",
+            # 统一成立体声 48k：单声道 44.1k 的 AAC 在部分播放器/设备上不出声
+            "-c:a", "aac", "-b:a", "160k", "-ac", "2", "-ar", "48000",
+            "-movflags", "+faststart"]
     if duration:
         args += ["-t", f"{duration:.3f}"]
     else:

@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "shots": [
+    {
+      "idx": 0,
+      "segment_idx": 0,
+      "narration": "躺床上刷两小时手机，起来比上班还累。周末睡了十个小时，周一早上还是像被抽干。",
+      "visual_prompt": "躺床上刷两小时手机起来比上班还累，生活纪实摄影，自然光，浅景深，真实质感，近景特写，16:9，画面无文字",
+      "motion": "kenburns_in",
+      "kind_hint": "image",
+      "est_sec": 8.3
+    },
+    {
+      "idx": 1,
+      "segment_idx": 0,
+      "narration": "你可能觉得是自己懒，其实不是。",
+      "visual_prompt": "你可能觉得是自己懒其实不是，生活纪实摄影，自然光，浅景深，真实质感，中景，16:9，画面无文字",
+      "motion": "kenburns_out",
+      "kind_hint": "image",
+      "est_sec": 3.3
+    },
+    {
+      "idx": 2,
+      "segment_idx": 1,
+      "narration": "这就是休息悖论。身体停下来了，大脑却没停。它把休息本身记成了一项待办：我该放松、我怎么还没放松。",
+      "visual_prompt": "这就是休息悖论身体停下来了大脑却，生活纪实摄影，自然光，浅景深，真实质感，全景，16:9，画面无文字",
+      "motion": "pan_lr",
+      "kind_hint": "image",
+      "est_sec": 10.4
+    },
+    {
+      "idx": 3,
+      "segment_idx": 1,
+      "narration": "于是你越躺越紧张。",
+      "visual_prompt": "于是你越躺越紧张，生活纪实摄影，自然光，浅景深，真实质感，近景特写，16:9，画面无文字",
+      "motion": "kenburns_in",
+      "kind_hint": "image",
+      "est_sec": 2.0
+    },
+    {
+      "idx": 4,
+      "segment_idx": 2,
+      "narration": "背后是默认模式网络。你一闲下来，它就自动开机，反复回放没做完的事、没吵赢的架。",
+      "visual_prompt": "背后是默认模式网络你一闲下来它就，生活纪实摄影，自然光，浅景深，真实质感，中景，16:9，画面无文字",
+      "motion": "kenburns_out",
+      "kind_hint": "image",
+      "est_sec": 8.5
+    },
+    {
+      "idx": 5,
+      "segment_idx": 2,
+      "narration": "这叫认知疲劳，比干活还耗电。",
+      "visual_prompt": "这叫认知疲劳比干活还耗电，生活纪实摄影，自然光，浅景深，真实质感，全景，16:9，画面无文字",
+      "motion": "pan_lr",
+      "kind_hint": "image",
+      "est_sec": 3.0
+    },
+    {
+      "idx": 6,
+      "segment_idx": 3,
+      "narration": "刷手机、追剧这类被动娱乐，看着像休息，其实一直在喂这个网络。",
+      "visual_prompt": "刷手机追剧这类被动娱乐看着像休息，生活纪实摄影，自然光，浅景深，真实质感，近景特写，16:9，画面无文字",
+      "motion": "kenburns_in",
+      "kind_hint": "image",
+      "est_sec": 6.5
+    },
+    {
+      "idx": 7,
+      "segment_idx": 3,
+      "narration": "信息不断进来，大脑就没法真正下线，恢复感几乎为零。",
+      "visual_prompt": "信息不断进来大脑就没法真正下线恢，生活纪实摄影，自然光，浅景深，真实质感，中景，16:9，画面无文字",
+      "motion": "kenburns_out",
+      "kind_hint": "image",
+      "est_sec": 5.4
+    },
+    {
+      "idx": 8,
+      "segment_idx": 4,
+      "narration": "真正的休息不是把时间填满，而是让大脑确认：现在没有任务。散步、发呆、洗碗都行，关键是手上只有一件事。",
+      "visual_prompt": "真正的休息不是把时间填满而是让大，生活纪实摄影，自然光，浅景深，真实质感，全景，16:9，画面无文字",
+      "motion": "pan_lr",
+      "kind_hint": "image",
+      "est_sec": 10.9
+    },
+    {
+      "idx": 9,
+      "segment_idx": 4,
+      "narration": "下次躺下前，先问自己一句：我是在休息，还是在后台跑程序？",
+      "visual_prompt": "下次躺下前先问自己一句我是在休息，生活纪实摄影，自然光，浅景深，真实质感，近景特写，16:9，画面无文字",
+      "motion": "kenburns_in",
+      "kind_hint": "image",
+      "est_sec": 6.1
+    }
+  ]
+}

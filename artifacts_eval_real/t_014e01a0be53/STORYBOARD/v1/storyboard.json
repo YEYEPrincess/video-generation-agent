@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "shots": [
+    {
+      "idx": 0,
+      "segment_idx": 0,
+      "narration": "《盗梦空间》那条走廊，每拍一次都得重新校准。",
+      "visual_prompt": "盗梦空间那条走廊每拍一次都得重新，电影感剧照，低饱和，宽画幅，气氛光，近景特写，16:9，画面无文字",
+      "motion": "kenburns_in",
+      "kind_hint": "image",
+      "est_sec": 4.8
+    },
+    {
+      "idx": 1,
+      "segment_idx": 0,
+      "narration": "剧组真搭了一个能转的走廊，人站在里面跟着翻，机器也固定在上面。",
+      "visual_prompt": "剧组真搭了一个能转的走廊人站在里，电影感剧照，低饱和，宽画幅，气氛光，中景，16:9，画面无文字",
+      "motion": "kenburns_out",
+      "kind_hint": "image",
+      "est_sec": 6.7
+    },
+    {
+      "idx": 2,
+      "segment_idx": 1,
+      "narration": "这种镜头贵在哪？贵在它没法一次成。",
+      "visual_prompt": "这种镜头贵在哪贵在它没法一次成，电影感剧照，低饱和，宽画幅，气氛光，全景，16:9，画面无文字",
+      "motion": "pan_lr",
+      "kind_hint": "image",
+      "est_sec": 3.7
+    },
+    {
+      "idx": 3,
+      "segment_idx": 1,
+      "narration": "演员重心一乱、转轴速度差半拍、灯光位置偏一点，整条就废了，全组重新归位再来一遍。",
+      "visual_prompt": "演员重心一乱转轴速度差半拍灯光位，电影感剧照，低饱和，宽画幅，气氛光，近景特写，16:9，画面无文字",
+      "motion": "kenburns_in",
+      "kind_hint": "image",
+      "est_sec": 8.7
+    },
+    {
+      "idx": 4,
+      "segment_idx": 2,
+      "narration": "所以你算单镜头成本，不能只看设备租金和演员片酬。",
+      "visual_prompt": "所以你算单镜头成本不能只看设备租，电影感剧照，低饱和，宽画幅，气氛光，中景，16:9，画面无文字",
+      "motion": "kenburns_out",
+      "kind_hint": "image",
+      "est_sec": 5.2
+    },
+    {
+      "idx": 5,
+      "segment_idx": 2,
+      "narration": "真正的大头是重拍成本：几十号人一天的时间，全砸在同一条素材上。",
+      "visual_prompt": "真正的大头是重拍成本几十号人一天，电影感剧照，低饱和，宽画幅，气氛光，全景，16:9，画面无文字",
+      "motion": "pan_lr",
+      "kind_hint": "image",
+      "est_sec": 6.7
+    },
+    {
+      "idx": 6,
+      "segment_idx": 3,
+      "narration": "国内很多长镜头也一样，看着一气呵成，背后是走位排练几十遍。预算表上那行“拍摄天数”，才是真正烧钱的地方。",
+      "visual_prompt": "国内很多长镜头也一样看着一气呵成，电影感剧照，低饱和，宽画幅，气氛光，近景特写，16:9，画面无文字",
+      "motion": "kenburns_in",
+      "kind_hint": "image",
+      "est_sec": 11.3
+    },
+    {
+      "idx": 7,
+      "segment_idx": 4,
+      "narration": "下次看到一条丝滑的长镜头，你可以想一下：这条背后，剪掉了多少条同样贵的素材？",
+      "visual_prompt": "下次看到一条丝滑的长镜头你可以想，电影感剧照，低饱和，宽画幅，气氛光，中景，16:9，画面无文字",
+      "motion": "kenburns_out",
+      "kind_hint": "image",
+      "est_sec": 8.3
+    }
+  ]
+}

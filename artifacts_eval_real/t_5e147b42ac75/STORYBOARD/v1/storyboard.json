@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "shots": [
+    {
+      "idx": 0,
+      "segment_idx": 0,
+      "narration": "Linux 基金会一年收两亿美元，这钱谁掏的？",
+      "visual_prompt": "Linux基金会一年收两亿美元这，科技感三维渲染，冷色调，细线光效，暗背景，近景特写，16:9，画面无文字",
+      "motion": "kenburns_in",
+      "kind_hint": "image",
+      "est_sec": 5.0
+    },
+    {
+      "idx": 1,
+      "segment_idx": 0,
+      "narration": "不是程序员打赏，是微软、谷歌、英特尔这些大厂按会员等级交的年费。",
+      "visual_prompt": "不是程序员打赏是微软谷歌英特尔这，科技感三维渲染，冷色调，细线光效，暗背景，中景，16:9，画面无文字",
+      "motion": "kenburns_out",
+      "kind_hint": "image",
+      "est_sec": 7.0
+    },
+    {
+      "idx": 2,
+      "segment_idx": 1,
+      "narration": "它们为什么愿意交？因为开源许可证让它们能把整套技术栈白嫖进自己的产品里，省下的授权费比会费多得多。",
+      "visual_prompt": "它们为什么愿意交因为开源许可证让，科技感三维渲染，冷色调，细线光效，暗背景，全景，16:9，画面无文字",
+      "motion": "pan_lr",
+      "kind_hint": "image",
+      "est_sec": 10.7
+    },
+    {
+      "idx": 3,
+      "segment_idx": 2,
+      "narration": "更妙的是互相牵制。谁都不敢先闭源，一闭源别人就抱团把你踢出生态，于是大家宁可交钱维持这个平衡。",
+      "visual_prompt": "更妙的是互相牵制谁都不敢先闭源一，科技感三维渲染，冷色调，细线光效，暗背景，近景特写，16:9，画面无文字",
+      "motion": "kenburns_in",
+      "kind_hint": "image",
+      "est_sec": 10.2
+    },
+    {
+      "idx": 4,
+      "segment_idx": 3,
+      "narration": "但钱只流向明星项目。OpenSSL 这种底层库常年没人管，二零一四年 Heartbleed 漏洞炸出来，",
+      "visual_prompt": "但钱只流向明星项目OpenSSL，科技感三维渲染，冷色调，细线光效，暗背景，中景，16:9，画面无文字",
+      "motion": "kenburns_out",
+      "kind_hint": "image",
+      "est_sec": 11.3
+    },
+    {
+      "idx": 5,
+      "segment_idx": 3,
+      "narration": "全球才发现维护它的就几个人。",
+      "visual_prompt": "全球才发现维护它的就几个人，科技感三维渲染，冷色调，细线光效，暗背景，全景，16:9，画面无文字",
+      "motion": "pan_lr",
+      "kind_hint": "image",
+      "est_sec": 3.0
+    },
+    {
+      "idx": 6,
+      "segment_idx": 4,
+      "narration": "所以开源活下来的从来不是理想主义，是公司算过账的那笔授权费。",
+      "visual_prompt": "所以开源活下来的从来不是理想主义，科技感三维渲染，冷色调，细线光效，暗背景，近景特写，16:9，画面无文字",
+      "motion": "kenburns_in",
+      "kind_hint": "image",
+      "est_sec": 6.5
+    },
+    {
+      "idx": 7,
+      "segment_idx": 4,
+      "narration": "下次你用的开源库爆漏洞，先想想它背后还有几个人在维护。",
+      "visual_prompt": "下次你用的开源库爆漏洞先想想它背，科技感三维渲染，冷色调，细线光效，暗背景，中景，16:9，画面无文字",
+      "motion": "kenburns_out",
+      "kind_hint": "image",
+      "est_sec": 5.9
+    }
+  ]
+}
