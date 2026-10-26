@@ -257,6 +257,11 @@ def run_task(conn: sqlite3.Connection, task_id: str, worker_id: str, settings: S
     while True:
         task = get_task(conn, task_id)
 
+        # 正常收尾：QC 判完终态后回到这里，不该报"租约丢失"
+        if task["status"] in {s.value for s in (TaskStatus.DONE, TaskStatus.PARTIAL,
+                                                TaskStatus.FAILED, TaskStatus.NEEDS_HUMAN)}:
+            return str(task["status"])
+
         if task["status"] != TaskStatus.RUNNING.value or task["worker_id"] != worker_id:
             emit(conn, task_id, "lease", level="warn",
                  payload={"event": "lease_lost", "worker": worker_id})

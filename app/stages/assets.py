@@ -21,6 +21,7 @@ from app.core.artifacts import load as load_artifact
 from app.core.artifacts import stage_dir
 from app.core.context import StageContext, StageResult
 from app.core.state_machine import Stage
+from app.core.trace import emit
 from app.errors import AppError, ErrCode
 from app.settings import Settings
 from app.stages.registry import register
@@ -189,6 +190,21 @@ def run(ctx: StageContext) -> StageResult:
         degraded_count=sum(1 for s in asset_shots if s.degraded),
     )
 
+    failures = [
+        {"idx": idx, "error": result.error}
+        for idx, result in sorted(generated_results.items())
+        if getattr(result, "error", None)
+    ]
+    if failures:
+        emit(
+            ctx.conn,
+            ctx.task_id,
+            "tool_result",
+            stage=Stage.ASSETS.value,
+            level="warn",
+            payload={"image_failures": failures},
+        )
+
     return StageResult(
         data=assets.model_dump(),
         tokens=tokens,
@@ -200,6 +216,7 @@ def run(ctx: StageContext) -> StageResult:
             "regenerated": sorted(todo),
             "upgraded_to_video": upgraded,
             "degraded": assets.degraded_count,
+            "image_failures": failures,
         },
     )
 

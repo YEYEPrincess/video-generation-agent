@@ -9,6 +9,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import math
+import time
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -34,6 +35,8 @@ class ImageResult:
     provider: str
     cost_cents: int = 0
     degraded: bool = False
+    #: 降级原因（厂商返回的错误码/原文），用于排查"为什么这张是占位图"
+    error: str | None = None
 
 
 def _font(size: int) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
@@ -116,10 +119,18 @@ def _generate_via_api(prompt: str, out_path: Path, settings: Settings) -> ImageR
     except httpx.HTTPError as exc:
         raise AppError(ErrCode.E_TOOL_UPSTREAM, f"文生图网络错误: {exc}") from exc
 
-    if resp.status_code == 429 or resp.status_code >= 500:
+    if resp.status_code == 429:
+        retry_after = resp.headers.get("retry-after")
+        raise AppError(
+            ErrCode.E_TOOL_UPSTREAM,
+            "文生图上游 429（限流）",
+            detail={"retry_after": float(retry_after) if retry_after else None},
+        )
+    if resp.status_code >= 500:
         raise AppError(ErrCode.E_TOOL_UPSTREAM, f"文生图上游 {resp.status_code}")
     if resp.status_code >= 400:
-        raise AppError(ErrCode.E_TOOL_UPSTREAM, f"文生图请求被拒 {resp.status_code}", retryable=False)
+        raise AppError(ErrCode.E_TOOL_UPSTREAM, f"文生图请求被拒 {resp.status_code}", retryable=False,
+                       detail={"body": resp.text[:300]})
 
     data = resp.json()["data"][0]
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -148,15 +159,27 @@ def generate(
     index: int,
     settings: Settings,
 ) -> ImageResult:
-    """生成单镜画面。任何失败都降级为占位图，绝不让整条任务挂掉。"""
+    """生成单镜画面。任何失败都降级为占位图，绝不让整条任务挂掉。
+
+    注意：**这里必须自己重试**。runner 的 retry 是阶段级的——一张图失败会让
+    整个 ASSETS 阶段从头再来；而并发跑 6 张时，个别 429 完全正常。
+    """
     if settings.img_provider in {"api", "auto"} and settings.img_api_key and settings.img_base_url:
-        try:
-            return _generate_via_api(prompt, out_path, settings)
-        except AppError:
-            if settings.img_provider == "api":
-                # 显式要求走 API 时，失败标记为降级但依然出图
-                pass
-            result = make_placeholder(prompt, narration, out_path, size, index)
-            result.degraded = True
-            return result
+        last_error: AppError | None = None
+        for attempt in range(max(1, settings.img_retry)):
+            try:
+                return _generate_via_api(prompt, out_path, settings)
+            except AppError as exc:
+                last_error = exc
+                if not exc.retryable:
+                    break
+                # 429 要按厂商给的 retry-after 等，硬编码退避只会继续撞墙
+                delay = 1.2 * (attempt + 1)
+                if "429" in exc.message:
+                    delay = max(delay, float(exc.detail.get("retry_after") or 4.0))
+                time.sleep(delay)
+        result = make_placeholder(prompt, narration, out_path, size, index)
+        result.degraded = True
+        result.error = f"{last_error.code.value}: {last_error.message}" if last_error else None
+        return result
     return make_placeholder(prompt, narration, out_path, size, index)

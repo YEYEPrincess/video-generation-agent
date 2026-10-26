@@ -58,6 +58,8 @@ class Settings(BaseSettings):
     img_timeout_sec: float = 90.0
     #: 单张图成本（分），用于预算统计
     img_cost_cents: int = 0
+    #: 单张图的重试次数（并发 6 张时个别 429 很常见）
+    img_retry: int = 2
     assets_concurrency: int = 3
 
     # --- 语音合成（M2） ---

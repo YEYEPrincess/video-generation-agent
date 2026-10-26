@@ -206,7 +206,8 @@ def inspect(path: Path, cwd: Path, timeout: int, duration: float | None = None) 
     )
     audio = _run(
         ["ffmpeg", "-hide_banner", "-i", path.name, "-vn",
-         "-af", "silencedetect=noise=-40dB:d=0.5,volumedetect", "-f", "null", "-"],
+         # 1.5s 才叫"死气"；0.5s 会把中文句号处的自然停顿全判成缺陷
+         "-af", "silencedetect=noise=-38dB:d=1.5,volumedetect", "-f", "null", "-"],
         cwd=cwd, timeout=timeout,
     )
 
