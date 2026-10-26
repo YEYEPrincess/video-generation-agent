@@ -33,6 +33,10 @@ uvicorn.log
 uvicorn.err
 *.log
 # --- 评测产物 ---
+artifacts_*/
+eval-*.db
+eval-*.db-wal
+eval-*.db-shm
 artifacts_eval/
 eval.db
 eval.db-wal
