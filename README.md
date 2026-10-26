@@ -1,12 +1,14 @@
 # bili-video-agent
 
-> 输入一个中文主题 → 七阶段流水线 → 45 秒可发布短片。
+> 输入一个中文主题 → 七阶段流水线 → 45 秒可交付短片。
 > 异步任务、状态机落库、**杀进程还能续跑**、质检回退只重做坏镜头。
+>
+> *An async, resumable multi-modal agent service that turns a topic into a short video.*
 
 [![tests](https://img.shields.io/badge/tests-96%20passed-3ddc97)](#工程实践)
-[![eval](https://img.shields.io/badge/eval-20%2F20%20DONE-3ddc97)](#评测)
+[![eval](https://img.shields.io/badge/eval-15%2F15%20real-3ddc97)](#评测)
 
-![成片抽帧](docs/assets/m3-frame.png)
+![成片抽帧](docs/assets/real-frame.png)
 
 ---
 
@@ -14,17 +16,18 @@
 
 | 指标 | 值 | 口径 |
 |---|---|---|
-| 单元测试 | **92 条全绿**（~90s） | `pytest -q` |
-| 评测成功率 | **15/15 DONE**（真实模型）+ 20/20（Mock 压测） | 5 分区，720p draft |
-| 单条耗时 | 中位 **28.1s** / P95 33.6s | 1080p 约 90–110s |
-| 成片时长 | **45.0s**（合规率 100%） | 45–90s 为准 |
-| 画面运动量 | 6.03（阈值 ≥1.0） | 首镜两帧灰度差 |
-| QC 均分 | 95/100 | 唯一 warn 是无视频 API key |
-| 故障注入 | **3/3 PASS** | kill / 5xx / 超时 |
-| 代码量 | ~4.2k 行 Python | 含测试 |
+| 单元测试 | **96 条全绿**（~2 分钟） | `pytest -q` |
+| 评测成功率 | **15/15 DONE**（真实模型） | DeepSeek + CogView，720p draft |
+| 成片时长 | 50.6–61.8s（中位 53.5） | 真实模型；Mock 批恒为 45.0s |
+| 单条耗时 | 中位 **144.6s** / P95 173.1s | 720p；1080p 约 180–220s |
+| 画面运动量 | 中位 20.67（阈值 ≥1.0） | 首镜两帧灰度差 |
+| QC 均分 | 95/100 | 9 项检查 |
+| 故障注入 | **3/3 PASS** | kill -9 / 上游 500 / 超时 |
+| 代码量 | ~5.0k 行 Python | 含测试与脚本 |
 
-> 评测用 Mock 模型（无 API key）：**文本恒定，所以时长/运动量无区分度**。
-> 这组数字证明的是"流水线稳定"，不是"内容质量"。见 [诚实边界](#诚实边界)。
+> 真实模型那批成片有「AI生成」水印、画面为文生图占位级别；
+> 另有一批 20 条 Mock 压测（文本恒定、时长全为 45.0s），只用于验证流水线稳定性。
+> 详见 [诚实边界](#诚实边界)。
 
 ---
 
@@ -148,6 +151,35 @@ idem = sha1(task_id | stage | 该阶段的真实上游 | 配置版本)
 「镜头与旁白是否相关」判不了——所以它只挡「技术上不能发」，不假装能判「好不好看」。
 
 ---
+
+## 目录结构
+
+```
+app/
+├── main.py              # FastAPI 入口（工厂模式，便于测试注入）
+├── worker.py            # worker 进程：抢任务 + 心跳 + 推进
+├── db.py                # SQLite(WAL) 连接 / 建表 / 轻量迁移
+├── contracts.py         # 七阶段产物契约（pydantic）
+├── errors.py            # 8 个错误码 + AppError
+├── core/
+│   ├── queue.py         # enqueue / lease / heartbeat / reclaim  ← 换 Redis 只改这里
+│   ├── runner.py        # 状态机推进 + 幂等 + 重试 + QC 回退
+│   ├── artifacts.py     # 产物落盘与登记
+│   ├── state_machine.py # 阶段、超时、预算、STAGE_INPUTS
+│   └── trace.py         # 10 类事件
+├── stages/              # 七个阶段，每个 = 输入契约 + 输出契约 + 校验器
+├── agent/
+│   ├── llm.py           # OpenAI 兼容客户端 + MockLLM
+│   ├── graph_engine.py  # LangGraph 版编排（对照）
+│   ├── sdk_engine.py    # OpenAI Agents SDK 版（对照）
+│   └── tools/           # 图像 / TTS / ffmpeg / i2v
+├── mcp_server.py        # MCP server：4 个工具
+└── prompts/             # prompt 外置为 .md
+tests/                   # 96 条
+scripts/                 # 故障注入 / 批量运行 / 三引擎对照
+eval/                    # 20 条 golden set + 评测脚本
+docs/reports/            # 每个里程碑的实现报告（含 bug 复盘）
+```
 
 ## 三种 Agent 框架都接了一遍
 
