@@ -169,6 +169,35 @@ idem = sha1(task_id | stage | 该阶段的真实上游 | 配置版本)
 
 ---
 
+## 产物存在哪里
+
+每条任务一个目录，**不覆盖、可追溯**：
+
+```
+artifacts/<task_id>/
+├── RESEARCH/v1/research.json      # 选题简报
+├── SCRIPT/v1/script.json          # 标题 / 分段 / 时长
+├── STORYBOARD/v1/storyboard.json  # 镜头表
+├── ASSETS/
+│   ├── v1/assets.json             # 每镜素材清单（provider / degraded）
+│   └── media/shot_00.png ...      # 真实生成图（或占位图）
+├── VOICE/
+│   ├── v1/voice.json              # 每镜实测时长
+│   ├── media/shot_00.mp3 ...      # 配音
+│   └── audio.srt                  # 字幕
+├── RENDER/
+│   ├── v1/render.json             # 成片元数据（时长/黑帧/静音/峰值）
+│   ├── final.mp4                  # ★ 最终成片（还有一份在工作目录 work/final.mp4）
+│   └── work/clip_*.mp4            # 每镜片段，便于排查"哪一镜有问题"
+└── QC/v1/qc.json                  # 9 项检查 + 决策
+```
+
+- **成片路径固定为** `artifacts/<task_id>/RENDER/final.mp4`
+- `task_id` 在提交任务时的 202 响应里返回，也可在首页进度条或 `GET /tasks` 查到
+- 批量运行时想快速找片子：`scripts/run_batch.py` 会把副本放到 `dev_out/videos/`
+
+
+
 ## 工程实践
 
 | 项 | 做法 |
