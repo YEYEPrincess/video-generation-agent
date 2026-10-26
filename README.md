@@ -3,7 +3,7 @@
 > 输入一个中文主题 → 七阶段流水线 → 45 秒可发布短片。
 > 异步任务、状态机落库、**杀进程还能续跑**、质检回退只重做坏镜头。
 
-[![tests](https://img.shields.io/badge/tests-92%20passed-3ddc97)](#工程实践)
+[![tests](https://img.shields.io/badge/tests-96%20passed-3ddc97)](#工程实践)
 [![eval](https://img.shields.io/badge/eval-20%2F20%20DONE-3ddc97)](#评测)
 
 ![成片抽帧](docs/assets/m3-frame.png)
@@ -93,7 +93,7 @@
 
 ```powershell
 uv venv --python 3.11 .venv
-uv pip install --python .\.venv\Scripts\python.exe fastapi uvicorn pydantic pydantic-settings pytest httpx pillow edge-tts
+uv pip install --python .\.venv\Scripts\python.exe -r requirements.txt
 
 copy .env.example .env      # 可选：填 LLM_BASE_URL / LLM_API_KEY / LLM_MODEL；不填走 Mock
 
@@ -146,6 +146,31 @@ idem = sha1(task_id | stage | 该阶段的真实上游 | 配置版本)
 
 能自动判的只有：时长、黑帧/静音/削波、字幕覆盖、画面是否纯色。
 「镜头与旁白是否相关」判不了——所以它只挡「技术上不能发」，不假装能判「好不好看」。
+
+---
+
+## 三种 Agent 框架都接了一遍
+
+同一主题、同一套 prompt、同一套校验器，只换编排层（`scripts/compare_engines.py`）：
+
+| | 原生状态机 | LangGraph | OpenAI Agents SDK |
+|---|---|---|---|
+| 编排代码 | 238 行 | **88 行** | 52 行 |
+| 耗时 | 5.9s | 6.2s | 3.6–6.9s |
+| 断点续跑 | 自己写（幂等键 + 落库） | `MemorySaver` 自带 | 无 |
+| 产出 | JSON 文本 → 自己解析 | 图状态 dict | **tool 参数，直接是对象** |
+
+MCP 另起一个 server，把流水线暴露成 4 个工具（提交/查状态/列任务/取成片）：
+
+```powershell
+.\.venv\Scripts\python.exe -m app.mcp_server    # stdio，可挂到 Claude Desktop / Cursor
+```
+
+三个结论（详见 [`docs/reports/AGENT-框架对照.md`](docs/reports/AGENT-框架对照.md)）：
+
+1. **结构化参数 ≠ 合规参数**：SDK 的 tool call 保证 angle 是字符串，但不保证它 ≤40 字（实测 68 字），契约校验不能省。
+2. **框架管"执行到哪了"，管不了"谁来执行"和"执行几次算一次"**——队列、租约、幂等、计费仍在自己手里。
+3. **框架不是性能瓶颈**：90% 时间在模型侧，编排层是毫秒级。
 
 ---
 
