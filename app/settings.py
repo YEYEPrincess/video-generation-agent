@@ -94,6 +94,18 @@ class Settings(BaseSettings):
     qc_min_bytes: int = 3000
     qc_min_stddev: float = 6.0
 
+    # --- 译制流水线（DUB） ---
+    dub_source_lang: str = "zh"
+    dub_target_lang: str = "en"
+    #: 目标语配音音色（edge-tts 的名字，如 en-US-AriaNeural / ja-JP-NanamiNeural）
+    dub_voice: str = "en-US-AriaNeural"
+    #: whisper 模型：tiny 快但错字多，small 质量够用，medium 更好但慢
+    dub_asr_model: str = "small"
+    #: 配音最长允许加速倍数（英文比中文长，必须压缩时间轴）
+    dub_max_speedup: float = 1.6
+    #: HuggingFace 镜像（国内直连经常超时）
+    hf_endpoint: str = "https://hf-mirror.com"
+
     # --- 文本节奏 ---
     #: 实测：edge-tts 中文女声约 4.6–4.7 字/秒。按 4.2 估会偏长 11%，
     #: 导致成片掉到 45s 以下。改 prompt 字数区间时要同步复核这里。

@@ -177,13 +177,20 @@ def mux_with_subtitles(
     cwd: Path,
     timeout: int,
     duration: float | None = None,
+    cover: tuple[int, int] | None = None,
+    margin_v: int = 42,
 ) -> None:
     style = (
         "FontName=Microsoft YaHei,FontSize=20,PrimaryColour=&H00FFFFFF,"
         "OutlineColour=&H00000000,BorderStyle=3,BackColour=&H80000000,"
-        "Outline=1,Shadow=0,MarginV=42,MarginL=60,MarginR=60"
+        f"Outline=1,Shadow=0,MarginV={margin_v},MarginL=60,MarginR=60"
     )
-    vf = f"subtitles={srt_name}:force_style='{style}'"
+    chain = []
+    if cover:
+        y, h = cover
+        chain.append(f"drawbox=x=0:y={y}:w=iw:h={h}:color=black:t=fill")
+    chain.append(f"subtitles={srt_name}:force_style='{style}'")
+    vf = ",".join(chain)
     args = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
             "-i", video_name, "-i", audio_name,
             "-vf", vf, "-c:v", "libx264", "-preset", preset, "-crf", "22",

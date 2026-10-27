@@ -5,7 +5,7 @@
 >
 > *An async, resumable multi-modal agent service that turns a topic into a short video.*
 
-[![tests](https://img.shields.io/badge/tests-96%20passed-3ddc97)](#工程实践)
+[![tests](https://img.shields.io/badge/tests-101%20passed-3ddc97)](#工程实践)
 [![eval](https://img.shields.io/badge/eval-15%2F15%20real-3ddc97)](#评测)
 
 ![成片抽帧](docs/assets/real-frame.png)
@@ -23,7 +23,8 @@
 | 画面运动量 | 中位 20.67（阈值 ≥1.0） | 首镜两帧灰度差 |
 | QC 均分 | 95/100 | 9 项检查 |
 | 故障注入 | **3/3 PASS** | kill -9 / 上游 500 / 超时 |
-| 代码量 | ~5.0k 行 Python | 含测试与脚本 |
+| 代码量 | ~5.9k 行 Python | 含测试与脚本 |
+| **译制链路**（中→英） | 53.6s → 53.6s，13 句，漂移 0 | 最大加速 1.32x，质检 5/5 |
 
 > 真实模型那批成片有「AI生成」水印、画面为文生图占位级别；
 > 另有一批 20 条 Mock 压测（文本恒定、时长全为 45.0s），只用于验证流水线稳定性。
@@ -174,12 +175,36 @@ app/
 │   ├── sdk_engine.py    # OpenAI Agents SDK 版（对照）
 │   └── tools/           # 图像 / TTS / ffmpeg / i2v
 ├── mcp_server.py        # MCP server：4 个工具
+├── dub/                 # 译制流水线：asr / translate / tts / align / subs / qc
 └── prompts/             # prompt 外置为 .md
-tests/                   # 96 条
+tests/                   # 101 条
 scripts/                 # 故障注入 / 批量运行 / 三引擎对照
 eval/                    # 20 条 golden set + 评测脚本
 docs/reports/            # 每个里程碑的实现报告（含 bug 复盘）
 ```
+
+## 第二条流水线：视频译制（中 → 英）
+
+同一条平台长出第二条链路：给它一条**已带中文字幕和配音**的视频，输出英文配音 + 英文字幕版。
+
+```
+video → 抽音轨 → ASR(whisper 本地) → 翻译(LLM, 整段一次)
+      → 英文 TTS → 时间轴对齐(atempo + adelay) → 盖原字幕 + 换音轨 + 烧字幕 → 质检
+```
+
+```powershell
+.\.venv\Scripts\python.exe scripts\dub.py --video "dev_out\videos\01_xxx.mp4"
+```
+
+实测：53.63s → 53.63s，13 句，最大加速 1.32x，尾部漂移 0.0s，质检 5/5 通过。
+
+三个关键设计（详见 [`docs/reports/DUB-译制流水线.md`](docs/reports/DUB-译制流水线.md)）：
+
+1. **翻译要带"字符预算"**：英文比中文长 30%–50%，不限制长度就会把时间轴拖爆。
+   prompt 里写 `≤ sec×14 字符`，代码里再校验并带着"哪句超了多少"重试。
+2. **时间轴用"静音底轨 + adelay + amix"**，不是 concat——concat 会吃掉句子之间的停顿。
+3. **原片字幕是烧死的**：先用 OpenCV 找字幕带并覆盖，再烧新字幕；
+   否则双语叠在一起（这是第一版最明显的 bug）。
 
 ## 三种 Agent 框架都接了一遍
 

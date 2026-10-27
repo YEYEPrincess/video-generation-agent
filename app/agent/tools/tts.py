@@ -78,7 +78,7 @@ def _trim_tail(path: Path, timeout: float) -> Path:
     return path
 
 
-def synthesize(text: str, out_dir: Path, idx: int, settings: Settings) -> TtsResult:
+def synthesize(text: str, out_dir: Path, idx: int, settings: Settings, voice: str | None = None) -> TtsResult:
     """按镜生成配音。返回的 duration 是**实测**时长，不是估算。
 
     edge-tts 第一次调用偶尔握手失败（尤其冷启动），所以重试 1 次再降级——
@@ -90,7 +90,7 @@ def synthesize(text: str, out_dir: Path, idx: int, settings: Settings) -> TtsRes
         mp3 = out_dir / f"shot_{idx:02d}.mp3"
         for attempt in range(2):
             try:
-                asyncio.run(_edge_save(text, mp3, settings.tts_voice, settings.tts_timeout_sec))
+                asyncio.run(_edge_save(text, mp3, voice or settings.tts_voice, settings.tts_timeout_sec))
                 _trim_tail(mp3, settings.tts_timeout_sec)
                 info = probe(mp3)
                 if info["duration"] <= 0:
